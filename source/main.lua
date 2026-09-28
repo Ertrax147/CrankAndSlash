@@ -28,6 +28,7 @@ end
 local function drawHud()
     gfx.setColor(gfx.kColorBlack)
     gfx.drawText("HP: " .. Player.hp, 4, 4)
+    gfx.drawText("Ronda: " .. Round.number, 170, 4)
     gfx.drawText("Tiempo: " .. math.ceil(Round.timeLeft), 300, 4)
     -- barra de energia de la manivela
     gfx.drawRect(4, 226, 100, 10)
