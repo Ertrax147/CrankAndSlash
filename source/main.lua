@@ -4,6 +4,7 @@ import "config"
 import "pool"
 import "collision"
 import "energy"
+import "round"
 import "player"
 import "weapon"
 import "enemy"
@@ -16,6 +17,7 @@ local gameOver = false
 
 local function resetGame()
     Energy.reset()
+    Round.reset()
     Player.reset()
     Weapon.reset()
     Enemy.reset()
@@ -26,6 +28,7 @@ end
 local function drawHud()
     gfx.setColor(gfx.kColorBlack)
     gfx.drawText("HP: " .. Player.hp, 4, 4)
+    gfx.drawText("Tiempo: " .. math.ceil(Round.timeLeft), 300, 4)
     -- barra de energia de la manivela
     gfx.drawRect(4, 226, 100, 10)
     gfx.fillRect(4, 226, 100 * Energy.ratio(), 10)
@@ -38,6 +41,7 @@ function playdate.update()
 
     if not gameOver then
         Energy.update(dt)
+        Round.update(dt)
         Player.update(dt)
         Weapon.update(dt)
 
