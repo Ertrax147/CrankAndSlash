@@ -1,0 +1,6 @@
+name=Crank & Slash
+author=Cristopher Gallegos
+description=Arena survival roguelite controlado con la manivela
+bundleID=cl.ufro.crankandslash
+version=0.1
+buildNumber=1
