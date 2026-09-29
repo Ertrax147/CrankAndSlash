@@ -6,6 +6,8 @@ import "collision"
 import "energy"
 import "round"
 import "player"
+import "camera"
+import "map"
 import "weapon_types"
 import "weapon"
 import "enemy"
@@ -25,6 +27,7 @@ local function resetGame()
     Energy.reset()
     Round.reset()
     Player.reset()
+    Camera.reset()
     Weapon.reset()
     Enemy.reset()
     Projectile.reset()
@@ -59,6 +62,7 @@ function playdate.update()
             announceTimer = announceTimer - dt
         end
         Player.update(dt)
+        Camera.update()
         Weapon.update(dt)
         Ranged.update(dt)
 
@@ -78,6 +82,7 @@ function playdate.update()
     end
 
     gfx.clear(gfx.kColorWhite)
+    Map.draw()
     Enemy.draw()
     Weapon.draw()
     Projectile.draw()
