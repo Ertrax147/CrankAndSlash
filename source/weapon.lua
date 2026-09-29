@@ -42,9 +42,11 @@ end
 -- y un circulo relleno en la punta (esa es la parte que si hace dano)
 function Weapon.draw()
     gfx.setColor(gfx.kColorBlack)
+    local playerScreenX, playerScreenY = Camera.toScreen(Player.x, Player.y)
     for i = 1, #Weapon.list do
         local w = Weapon.list[i]
-        gfx.drawLine(Player.x, Player.y, w.x, w.y)
-        gfx.fillCircleAtPoint(w.x, w.y, w.def.RADIUS)
+        local screenX, screenY = Camera.toScreen(w.x, w.y)
+        gfx.drawLine(playerScreenX, playerScreenY, screenX, screenY)
+        gfx.fillCircleAtPoint(screenX, screenY, w.def.RADIUS)
     end
 end

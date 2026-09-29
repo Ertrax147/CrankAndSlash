@@ -37,7 +37,8 @@ function Projectile.reset()
     Projectile.pool:releaseAll()
 end
 
--- Mueve cada proyectil activo en linea recta; se libera solo al salir de la pantalla
+-- Mueve cada proyectil activo en linea recta; se libera al salir de lo que se ve en pantalla
+-- (comparando contra la camara, no contra el mundo, que ahora es infinito)
 function Projectile.update(dt)
     local items = Projectile.pool.items
     for i = 1, #items do
@@ -45,7 +46,8 @@ function Projectile.update(dt)
         if p.active then
             p.x = p.x + p.dx * Projectile.SPEED * dt
             p.y = p.y + p.dy * Projectile.SPEED * dt
-            if p.x < 0 or p.x > Config.SCREEN_W or p.y < 0 or p.y > Config.SCREEN_H then
+            local screenX, screenY = Camera.toScreen(p.x, p.y)
+            if screenX < 0 or screenX > Config.SCREEN_W or screenY < 0 or screenY > Config.SCREEN_H then
                 Projectile.pool:release(p)
             end
         end
@@ -58,7 +60,8 @@ function Projectile.draw()
     for i = 1, #items do
         local p = items[i]
         if p.active then
-            gfx.fillCircleAtPoint(p.x, p.y, Projectile.RADIUS)
+            local screenX, screenY = Camera.toScreen(p.x, p.y)
+            gfx.fillCircleAtPoint(screenX, screenY, Projectile.RADIUS)
         end
     end
 end

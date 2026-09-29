@@ -31,13 +31,6 @@ function Player.update(dt)
     Player.x = Player.x + dx * Player.SPEED * dt
     Player.y = Player.y + dy * Player.SPEED * dt
 
-    -- limites de la arena
-    local r = Player.RADIUS
-    if Player.x < r then Player.x = r end
-    if Player.x > Config.SCREEN_W - r then Player.x = Config.SCREEN_W - r end
-    if Player.y < r then Player.y = r end
-    if Player.y > Config.SCREEN_H - r then Player.y = Config.SCREEN_H - r end
-
     if Player.invuln > 0 then
         Player.invuln = Player.invuln - dt
         if Player.invuln < 0 then Player.invuln = 0 end
@@ -54,5 +47,6 @@ function Player.draw()
     -- parpadea mientras es invulnerable
     if Player.invuln > 0 and math.floor(Player.invuln * 10) % 2 == 0 then return end
     gfx.setColor(gfx.kColorBlack)
-    gfx.fillCircleAtPoint(Player.x, Player.y, Player.RADIUS)
+    local screenX, screenY = Camera.toScreen(Player.x, Player.y)
+    gfx.fillCircleAtPoint(screenX, screenY, Player.RADIUS)
 end
