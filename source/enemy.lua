@@ -38,6 +38,27 @@ function Enemy.reset()
     Enemy.pool:releaseAll()
 end
 
+-- Devuelve el enemigo activo mas cercano al punto (x, y), o nil si no hay ninguno.
+-- Compara distancias al cuadrado para evitar raices cuadradas innecesarias.
+function Enemy.closest(x, y)
+    local items = Enemy.pool.items
+    local best = nil
+    local bestDist = nil
+    for i = 1, #items do
+        local e = items[i]
+        if e.active then
+            local dx = e.x - x
+            local dy = e.y - y
+            local dist = dx * dx + dy * dy
+            if not bestDist or dist < bestDist then
+                bestDist = dist
+                best = e
+            end
+        end
+    end
+    return best
+end
+
 function Enemy.update(dt)
     local items = Enemy.pool.items
     for i = 1, #items do
