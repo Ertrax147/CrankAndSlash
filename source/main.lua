@@ -12,7 +12,10 @@ import "combat"
 
 local gfx = playdate.graphics
 
+local ANNOUNCE_DURATION = 1.5 -- segundos que se muestra el aviso "Ronda N"
+
 local spawnTimer = 0
+local announceTimer = 0
 local gameOver = false
 
 local function resetGame()
@@ -22,6 +25,7 @@ local function resetGame()
     Weapon.reset()
     Enemy.reset()
     spawnTimer = 0
+    announceTimer = 0
     gameOver = false
 end
 
@@ -42,7 +46,13 @@ function playdate.update()
 
     if not gameOver then
         Energy.update(dt)
-        Round.update(dt)
+        if Round.update(dt) then
+            Enemy.reset()
+            announceTimer = ANNOUNCE_DURATION
+        end
+        if announceTimer > 0 then
+            announceTimer = announceTimer - dt
+        end
         Player.update(dt)
         Weapon.update(dt)
 
@@ -65,6 +75,11 @@ function playdate.update()
     Weapon.draw()
     Player.draw()
     drawHud()
+    if announceTimer > 0 then
+        local announceText = "Ronda " .. Round.number
+        local textWidth = gfx.getTextSize(announceText)
+        gfx.drawText(announceText, (Config.SCREEN_W - textWidth) / 2, 100)
+    end
     if gameOver then
         gfx.drawText("GAME OVER - presiona A", 110, 110)
     end
