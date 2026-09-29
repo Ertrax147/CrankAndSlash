@@ -1,32 +1,50 @@
--- Arma cuerpo a cuerpo: gira sola alrededor del personaje.
+-- Armas del jugador: cada una gira sola alrededor del personaje.
 -- La energia de la manivela solo cambia su velocidad de giro.
+-- Weapon.list guarda todas las armas activas del jugador (hoy solo una, la cuerpo a cuerpo).
 local gfx = playdate.graphics
 
-Weapon = {
-    ORBIT_RADIUS = 30, -- distancia al personaje
-    RADIUS = 6,        -- tamano del arma (para colisiones)
-    DAMAGE = 1,
-    BASE_SPEED = 120,  -- grados por segundo sin energia
-    MAX_SPEED = 540,   -- grados por segundo con energia llena
-    HIT_COOLDOWN = 0.4, -- segundos antes de poder golpear de nuevo al mismo enemigo
-}
+Weapon = {}
 
+-- Crea una tabla de arma nueva a partir de su tipo (ej: "MELEE"), buscando
+-- los valores en WeaponTypes. Cada arma tiene su propia posicion y angulo,
+-- para que en el futuro puedan girar varias armas al mismo tiempo.
+local function newWeapon(typeName)
+    local def = WeaponTypes[typeName]
+    return {
+        type = typeName,
+        def = def,
+        angle = 0,
+        x = Player.x + def.ORBIT_RADIUS,
+        y = Player.y,
+    }
+end
+
+-- Reinicia la lista de armas del jugador a su estado inicial
 function Weapon.reset()
-    Weapon.angle = 0
-    Weapon.x = Player.x + Weapon.ORBIT_RADIUS
-    Weapon.y = Player.y
+    Weapon.list = { newWeapon("MELEE") }
 end
 
+-- Actualiza la posicion de cada arma: gira alrededor del personaje,
+-- mas rapido mientras mas energia de la manivela hay (Energy.ratio va de 0 a 1)
 function Weapon.update(dt)
-    local speed = Weapon.BASE_SPEED + (Weapon.MAX_SPEED - Weapon.BASE_SPEED) * Energy.ratio()
-    Weapon.angle = (Weapon.angle + speed * dt) % 360
-    local rad = math.rad(Weapon.angle)
-    Weapon.x = Player.x + Weapon.ORBIT_RADIUS * math.cos(rad)
-    Weapon.y = Player.y + Weapon.ORBIT_RADIUS * math.sin(rad)
+    for i = 1, #Weapon.list do
+        local w = Weapon.list[i]
+        local def = w.def
+        local speed = def.BASE_SPEED + (def.MAX_SPEED - def.BASE_SPEED) * Energy.ratio()
+        w.angle = (w.angle + speed * dt) % 360
+        local rad = math.rad(w.angle)
+        w.x = Player.x + def.ORBIT_RADIUS * math.cos(rad)
+        w.y = Player.y + def.ORBIT_RADIUS * math.sin(rad)
+    end
 end
 
+-- Dibuja cada arma: una linea que la une al personaje (solo visual, no hace dano)
+-- y un circulo relleno en la punta (esa es la parte que si hace dano)
 function Weapon.draw()
     gfx.setColor(gfx.kColorBlack)
-    gfx.drawLine(Player.x, Player.y, Weapon.x, Weapon.y)
-    gfx.fillCircleAtPoint(Weapon.x, Weapon.y, Weapon.RADIUS)
+    for i = 1, #Weapon.list do
+        local w = Weapon.list[i]
+        gfx.drawLine(Player.x, Player.y, w.x, w.y)
+        gfx.fillCircleAtPoint(w.x, w.y, w.def.RADIUS)
+    end
 end
