@@ -9,6 +9,8 @@ import "player"
 import "weapon_types"
 import "weapon"
 import "enemy"
+import "projectile"
+import "ranged"
 import "combat"
 
 local gfx = playdate.graphics
@@ -25,6 +27,8 @@ local function resetGame()
     Player.reset()
     Weapon.reset()
     Enemy.reset()
+    Projectile.reset()
+    Ranged.reset()
     spawnTimer = 0
     announceTimer = 0
     gameOver = false
@@ -56,6 +60,7 @@ function playdate.update()
         end
         Player.update(dt)
         Weapon.update(dt)
+        Ranged.update(dt)
 
         spawnTimer = spawnTimer + dt
         if spawnTimer >= Config.SPAWN_INTERVAL then
@@ -64,6 +69,7 @@ function playdate.update()
         end
 
         Enemy.update(dt)
+        Projectile.update(dt)
         Combat.update()
 
         if Player.hp <= 0 then gameOver = true end
@@ -74,6 +80,7 @@ function playdate.update()
     gfx.clear(gfx.kColorWhite)
     Enemy.draw()
     Weapon.draw()
+    Projectile.draw()
     Player.draw()
     drawHud()
     if announceTimer > 0 then

@@ -25,6 +25,21 @@ function Combat.update()
                     end
                 end
             end
+            -- proyectiles vs enemigo: un proyectil hace dano y desaparece al primer golpe
+            if e.active then
+                local projectiles = Projectile.pool.items
+                for j = 1, #projectiles do
+                    local p = projectiles[j]
+                    if p.active and Collision.circles(p.x, p.y, Projectile.RADIUS, e.x, e.y, Enemy.RADIUS) then
+                        e.hp = e.hp - Projectile.DAMAGE
+                        Projectile.pool:release(p)
+                        if e.hp <= 0 then
+                            Enemy.pool:release(e)
+                        end
+                        break
+                    end
+                end
+            end
             -- enemigo vs jugador: si un enemigo toca al jugador, le hace dano de contacto
             if e.active and Collision.circles(Player.x, Player.y, Player.RADIUS, e.x, e.y, Enemy.RADIUS) then
                 Player.hurt(Combat.CONTACT_DAMAGE)
