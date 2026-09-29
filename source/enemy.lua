@@ -14,21 +14,28 @@ end
 
 Enemy.pool = Pool.new(Enemy.POOL_SIZE, newEnemyObject)
 
--- Activa un enemigo del pool en un borde aleatorio de la pantalla
+-- Activa un enemigo del pool en un borde aleatorio de lo que se ve en pantalla,
+-- calculado alrededor de la camara (no de un borde fijo, el mundo es infinito).
 function Enemy.spawn()
     local e = Enemy.pool:acquire()
     if not e then return end -- pool lleno: no aparece mas por ahora
 
     local r = Enemy.RADIUS
+    -- math.random(m, n) necesita enteros; Camera.x/y son decimales, por eso el floor
+    local left = math.floor(Camera.x - Config.SCREEN_W / 2)
+    local right = math.floor(Camera.x + Config.SCREEN_W / 2)
+    local top = math.floor(Camera.y - Config.SCREEN_H / 2)
+    local bottom = math.floor(Camera.y + Config.SCREEN_H / 2)
+
     local side = math.random(4)
     if side == 1 then
-        e.x = math.random(0, Config.SCREEN_W); e.y = -r
+        e.x = math.random(left, right); e.y = top - r
     elseif side == 2 then
-        e.x = math.random(0, Config.SCREEN_W); e.y = Config.SCREEN_H + r
+        e.x = math.random(left, right); e.y = bottom + r
     elseif side == 3 then
-        e.x = -r; e.y = math.random(0, Config.SCREEN_H)
+        e.x = left - r; e.y = math.random(top, bottom)
     else
-        e.x = Config.SCREEN_W + r; e.y = math.random(0, Config.SCREEN_H)
+        e.x = right + r; e.y = math.random(top, bottom)
     end
     e.hp = Enemy.HP
     e.hitTimer = 0
@@ -82,7 +89,8 @@ function Enemy.draw()
     for i = 1, #items do
         local e = items[i]
         if e.active then
-            gfx.drawCircleAtPoint(e.x, e.y, Enemy.RADIUS)
+            local screenX, screenY = Camera.toScreen(e.x, e.y)
+            gfx.drawCircleAtPoint(screenX, screenY, Enemy.RADIUS)
         end
     end
 end
