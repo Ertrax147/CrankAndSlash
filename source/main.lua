@@ -4,6 +4,7 @@ import "config"
 import "pool"
 import "collision"
 import "energy"
+import "round"
 import "player"
 import "weapon"
 import "enemy"
@@ -11,21 +12,28 @@ import "combat"
 
 local gfx = playdate.graphics
 
+local ANNOUNCE_DURATION = 1.5 -- segundos que se muestra el aviso "Ronda N"
+
 local spawnTimer = 0
+local announceTimer = 0
 local gameOver = false
 
 local function resetGame()
     Energy.reset()
+    Round.reset()
     Player.reset()
     Weapon.reset()
     Enemy.reset()
     spawnTimer = 0
+    announceTimer = 0
     gameOver = false
 end
 
 local function drawHud()
     gfx.setColor(gfx.kColorBlack)
     gfx.drawText("HP: " .. Player.hp, 4, 4)
+    gfx.drawText("Ronda: " .. Round.number, 170, 4)
+    gfx.drawText("Tiempo: " .. math.ceil(Round.timeLeft), 300, 4)
     -- barra de energia de la manivela
     gfx.drawRect(4, 226, 100, 10)
     gfx.fillRect(4, 226, 100 * Energy.ratio(), 10)
@@ -38,6 +46,13 @@ function playdate.update()
 
     if not gameOver then
         Energy.update(dt)
+        if Round.update(dt) then
+            Enemy.reset()
+            announceTimer = ANNOUNCE_DURATION
+        end
+        if announceTimer > 0 then
+            announceTimer = announceTimer - dt
+        end
         Player.update(dt)
         Weapon.update(dt)
 
@@ -60,6 +75,11 @@ function playdate.update()
     Weapon.draw()
     Player.draw()
     drawHud()
+    if announceTimer > 0 then
+        local announceText = "Ronda " .. Round.number
+        local textWidth = gfx.getTextSize(announceText)
+        gfx.drawText(announceText, (Config.SCREEN_W - textWidth) / 2, 100)
+    end
     if gameOver then
         gfx.drawText("GAME OVER - presiona A", 110, 110)
     end
