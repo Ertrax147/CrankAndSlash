@@ -5,6 +5,7 @@ local gfx = playdate.graphics
 Projectile = {
     RADIUS = 3,
     SPEED = 220, -- pixeles por segundo
+    DAMAGE = 1,
     POOL_SIZE = 20,
 }
 
