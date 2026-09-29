@@ -9,6 +9,7 @@ import "player"
 import "weapon_types"
 import "weapon"
 import "enemy"
+import "projectile"
 import "combat"
 
 local gfx = playdate.graphics
@@ -25,6 +26,7 @@ local function resetGame()
     Player.reset()
     Weapon.reset()
     Enemy.reset()
+    Projectile.reset()
     spawnTimer = 0
     announceTimer = 0
     gameOver = false
@@ -57,6 +59,11 @@ function playdate.update()
         Player.update(dt)
         Weapon.update(dt)
 
+        -- disparo de prueba provisorio (se reemplaza en el Paso 10 por ranged.lua)
+        if playdate.buttonJustPressed(playdate.kButtonB) then
+            Projectile.spawn(Player.x, Player.y, Player.x + 100, Player.y)
+        end
+
         spawnTimer = spawnTimer + dt
         if spawnTimer >= Config.SPAWN_INTERVAL then
             spawnTimer = 0
@@ -64,6 +71,7 @@ function playdate.update()
         end
 
         Enemy.update(dt)
+        Projectile.update(dt)
         Combat.update()
 
         if Player.hp <= 0 then gameOver = true end
@@ -74,6 +82,7 @@ function playdate.update()
     gfx.clear(gfx.kColorWhite)
     Enemy.draw()
     Weapon.draw()
+    Projectile.draw()
     Player.draw()
     drawHud()
     if announceTimer > 0 then
