@@ -32,6 +32,14 @@ EnemyTypes = {
     },
 }
 
+-- El jefe no esta en LIST (no sale al azar): aparece solo al empezar cada ronda multiplo de
+-- Difficulty.BOSS_EVERY. GEMS es cuantas gemas suelta al morir (los demas sueltan 1).
+EnemyTypes.BOSS = {
+    RADIUS = 14, SPEED = 38, HP = 40, DAMAGE = 2, MIN_ROUND = 1, WEIGHT = 0,
+    SPRITE = "images/enemy_jefe", ANIM_TIME = 0.15,
+    GEMS = 12, BOSS = true,
+}
+
 -- Lista de los tipos que pueden aparecer en el juego
 EnemyTypes.LIST = {
     EnemyTypes.FANTASMA,

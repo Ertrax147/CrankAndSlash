@@ -140,6 +140,7 @@ function playdate.update()
         if Round.update(dt) then
             Enemy.reset()
             announceTimer = ANNOUNCE_DURATION
+            if Difficulty.isBossRound() then Enemy.spawnBoss() end
         end
         if announceTimer > 0 then
             announceTimer = announceTimer - dt
@@ -184,6 +185,7 @@ function playdate.update()
     drawHud()
     if announceTimer > 0 then
         local announceText = "Ronda " .. Round.number
+        if Difficulty.isBossRound() then announceText = announceText .. " - JEFE!" end
         local textWidth = gfx.getTextSize(announceText)
         gfx.drawText(announceText, (Config.SCREEN_W - textWidth) / 2, 100)
     end

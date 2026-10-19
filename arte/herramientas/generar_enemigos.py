@@ -82,7 +82,18 @@ def spider(f):
     s.putpixel((10,10),Wh); s.putpixel((11,10),Wh); s.putpixel((10,11),Wh); s.putpixel((11,11),Wh)  # marca blanca
     return s
 
-designs=[("fantasma",ghost),("murcielago",bat),("oso",bear),("golem",golem),("arana",spider)]
+# ---------- jefe: el murcielago agrandado al doble, con colmillos (2 cuadros: alas arriba / abajo)
+def boss(f):
+    small = bat(f)
+    big = small.resize((small.width*2, small.height*2), Image.NEAREST)
+    d = ImageDraw.Draw(big)
+    for x in (17, 21):                       # colmillos blancos bajo los ojos
+        d.rectangle((x, 17, x+1, 20), fill=Wh)
+    for x in (16, 22):                       # ojos mas grandes
+        d.rectangle((x, 11, x+1, 13), fill=Wh)
+    return big
+
+designs=[("fantasma",ghost),("murcielago",bat),("oso",bear),("golem",golem),("arana",spider),("jefe",boss)]
 rows=[]
 for n,fn in designs:
     for f in (0,1):

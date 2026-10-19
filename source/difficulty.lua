@@ -5,7 +5,13 @@ Difficulty = {
     SPAWN_STEP = 0.07,         -- cuantos segundos baja el intervalo entre apariciones en cada ronda
     MIN_SPAWN_INTERVAL = 0.3,  -- el intervalo nunca baja de esto
     HP_STEP = 0.12,            -- cuanta vida extra tienen los enemigos en cada ronda (0.12 = +12%)
+    BOSS_EVERY = 5,            -- aparece un jefe al empezar cada ronda multiplo de este numero
 }
+
+-- true si la ronda actual es de jefe (5, 10, 15...)
+function Difficulty.isBossRound()
+    return Round.number % Difficulty.BOSS_EVERY == 0
+end
 
 -- Segundos entre un enemigo y el siguiente: parte de Config.SPAWN_INTERVAL en la ronda 1 y baja
 function Difficulty.spawnInterval()

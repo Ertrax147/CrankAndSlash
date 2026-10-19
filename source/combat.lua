@@ -2,9 +2,17 @@
 -- El tamano (RADIUS) y el dano por contacto (DAMAGE) de cada enemigo vienen de su tipo: e.def
 Combat = {}
 
--- Se llama cuando un enemigo se queda sin vida: suelta una gema donde murio y vuelve al pool
+-- Se llama cuando un enemigo se queda sin vida: suelta gemas donde murio y vuelve al pool.
+-- Los enemigos normales sueltan 1; el jefe suelta varias (def.GEMS), repartidas alrededor.
 local function killEnemy(e)
-    Gems.spawn(e.x, e.y)
+    local count = e.def.GEMS or 1
+    for i = 1, count do
+        if count == 1 then
+            Gems.spawn(e.x, e.y)
+        else
+            Gems.spawn(e.x + math.random(-24, 24), e.y + math.random(-24, 24))
+        end
+    end
     Enemy.pool:release(e)
 end
 
