@@ -76,7 +76,18 @@ Reglas para ti (Claude Code):
 
 ## Arquitectura
 
-Todo el código está en `source/`. Cada archivo tiene una sola responsabilidad y se carga con `import` desde `main.lua`. Los módulos son **tablas globales** (`Config`, `Pool`, `Collision`, `Energy`, `Round`, `Player`, `Camera`, `Map`, `WeaponTypes`, `Weapon`, `Enemy`, `Projectile`, `Ranged`, `Combat`). Las constantes van en mayúsculas al inicio del módulo, sin números sueltos en el código.
+Todo el código está en `source/`, organizado en carpetas por responsabilidad. Cada archivo tiene una sola responsabilidad y se carga con `import "carpeta/archivo"` desde `main.lua`. Los módulos son **tablas globales** (`Config`, `Pool`, `Collision`, `Energy`, `Round`, `Player`, `Camera`, `Map`, `WeaponTypes`, `Weapon`, `Enemy`, `Projectile`, `Ranged`, `Combat`, etc.). Las constantes van en mayúsculas al inicio del módulo, sin números sueltos en el código.
+
+**Carpetas de `source/`:**
+- `core/`: lo básico que usa todo el juego y no depende de nada del juego: `config`, `pool`, `collision`.
+- `world/`: el mundo y la cámara: `camera`, `map`.
+- `data/`: tablas con valores, sin lógica: `enemy_types`, `weapon_types`, `upgrades`. Para agregar un enemigo, arma o mejora se toca solo esta carpeta (más su dibujo en `images/`).
+- `entities/`: lo que existe y se mueve en el juego: `player`, `enemy`, `weapon`, `projectile`, `gems`.
+- `systems/`: las reglas del juego: `combat`, `difficulty`, `round`, `xp`, `stats`, `energy`, `ranged`.
+- `images/`: los dibujos que usa el juego (lo que no se usa va en `arte/`, fuera de `source/`).
+- `main.lua` (en la raíz de `source/`) conecta todo. **Pendiente:** sacar de `main.lua` el HUD, el menú de subida de nivel y el dibujo de hitbox a una carpeta `ui/`, y preparar la máquina de estados.
+
+La tabla de abajo nombra los archivos sin carpeta.
 
 | Archivo | Responsabilidad |
 |---|---|
@@ -105,7 +116,7 @@ Todo el código está en `source/`. Cada archivo tiene una sola responsabilidad 
 
 **Orden de actualización por frame** (importa, no lo cambies sin avisar): `Energy.update` → `Round.update` (si empieza ronda nueva: `Enemy.reset` y aviso) → `Player.update` → `Camera.update` → `Weapon.update` → `Ranged.update` → spawner → `Enemy.update` → `Projectile.update` → `Combat.update`. Dibujo: `Map` → `Enemy` → `Weapon` → `Projectile` → `Player` → HUD → aviso de ronda / game over.
 
-**Orden de `import` en `main.lua`:** `config`, `pool`, `collision`, `energy`, `round`, `player`, `camera`, `map`, `weapon_types`, `weapon`, `enemy`, `projectile`, `ranged`, `combat`. `pool` debe ir antes de `enemy` y `projectile` (crean su pool al cargarse) y `weapon_types` antes de `weapon`.
+**Orden de `import` en `main.lua`:** primero `core/config`, `core/pool` y `core/collision`; las tablas de `data/` antes de los módulos que las usan al cargarse (`weapon_types` antes de `weapon`, `enemy_types` antes de `enemy`); `pool` antes de `enemy`, `projectile` y `gems` (crean su pool al cargarse). El orden exacto está en `main.lua`.
 
 ### Convenciones
 - Estilo de Lua simple. El dibujo del juego se hace con `playdate.graphics` (círculos y líneas) y solo se importa `CoreLibs/graphics`. **Sí se pueden usar librerías** (las CoreLibs del SDK, como sprites, timers o animación, u otras externas) cuando aporten valor real. Antes de agregar una, propón la opción, explica qué gana y qué complica, y espera mi OK.
