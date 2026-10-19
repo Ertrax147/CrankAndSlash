@@ -3,11 +3,14 @@
 local gfx = playdate.graphics
 
 Gems = {
-    HALF_SIZE = 6, -- la gema es un rombo de 12 px de alto
-    HALO = 2,      -- borde blanco alrededor, para que no se pierda entre los puntos del pasto
+    HALF_SIZE = 7, -- radio para recoger la gema al tocarla (el dibujo mide unos 16 px)
     VALUE = 1,     -- experiencia que da cada gema
     POOL_SIZE = 60,
 }
+
+-- Dibujo de la gema: un diamante de contorno. (El diamante negro, gem_diamante_negro.png, quedo
+-- guardado en source/images por si se quiere usar despues.)
+local gemImage = gfx.image.new("images/gem_diamante")
 
 local function newGemObject()
     return { active = false, x = 0, y = 0, value = 0 }
@@ -40,26 +43,16 @@ function Gems.update()
     end
 end
 
--- Dibuja un rombo de "radio" s centrado en (x, y)
-local function fillDiamond(x, y, s)
-    gfx.fillPolygon(x, y - s, x + s, y, x, y + s, x - s, y)
-end
-
--- Dibuja cada gema como un rombo negro con un punto blanco al centro y un halo blanco por fuera,
+-- Dibuja cada gema con su imagen, centrada en su posicion. El dibujo trae un borde blanco
 -- para que se distinga del fondo (el pasto tiene muchos puntos negros chiquitos).
 function Gems.draw()
-    local s = Gems.HALF_SIZE
+    local w, h = gemImage:getSize()
     local items = Gems.pool.items
     for i = 1, #items do
         local g = items[i]
         if g.active then
             local screenX, screenY = Camera.toScreen(g.x, g.y)
-            gfx.setColor(gfx.kColorWhite)
-            fillDiamond(screenX, screenY, s + Gems.HALO)
-            gfx.setColor(gfx.kColorBlack)
-            fillDiamond(screenX, screenY, s)
-            gfx.setColor(gfx.kColorWhite)
-            gfx.fillRect(screenX - 1, screenY - 2, 2, 4)
+            gemImage:draw(screenX - w / 2, screenY - h / 2)
         end
     end
 end
