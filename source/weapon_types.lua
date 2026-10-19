@@ -10,5 +10,21 @@ WeaponTypes = {
         BASE_SPEED = 120,   -- grados por segundo que gira sin energia de la manivela
         MAX_SPEED = 540,    -- grados por segundo que gira con la energia al maximo
         HIT_COOLDOWN = 0.4, -- segundos que debe esperar antes de poder golpear de nuevo al mismo enemigo
+        SPRITE = "images/weapon_maza", -- dibujo de la cabeza del arma (maza con pinchos)
+    },
+
+    -- Armas candidatas: todavia no se consiguen en el juego, estan para probar como se ven.
+    -- ROTATE = true hace que el dibujo gire junto con la orbita, apuntando hacia afuera.
+    HACHA = {
+        ORBIT_RADIUS = 30, RADIUS = 8, DAMAGE = 1, BASE_SPEED = 120, MAX_SPEED = 540, HIT_COOLDOWN = 0.4,
+        SPRITE = "images/weapon_hacha", ROTATE = true,
+    },
+    MARTILLO = {
+        ORBIT_RADIUS = 30, RADIUS = 8, DAMAGE = 1, BASE_SPEED = 120, MAX_SPEED = 540, HIT_COOLDOWN = 0.4,
+        SPRITE = "images/weapon_martillo", ROTATE = true,
+    },
+    ESPADA = {
+        ORBIT_RADIUS = 30, RADIUS = 7, DAMAGE = 1, BASE_SPEED = 120, MAX_SPEED = 540, HIT_COOLDOWN = 0.4,
+        SPRITE = "images/weapon_espada", ROTATE = true,
     },
 }
