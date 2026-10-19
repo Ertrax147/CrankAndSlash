@@ -9,6 +9,8 @@ function Stats.reset()
     Stats.damageMult = 1    -- multiplica el dano del arma y de la pistola
     Stats.energyMult = 1    -- multiplica la energia que da cada giro de la manivela
     Stats.fireRateMult = 1  -- multiplica la cadencia de disparo de la pistola
+    Stats.pickupBonus = 0   -- pixeles extra de alcance para recoger gemas
+    Stats.reachMult = 1     -- multiplica la distancia a la que gira el arma del jugador
 end
 
 -- Vida maxima actual del jugador

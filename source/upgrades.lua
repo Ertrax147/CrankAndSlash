@@ -8,7 +8,9 @@ Upgrades = {
     DAMAGE_STEP = 0.15,   -- +15% de dano
     SPEED_STEP = 0.08,    -- +8% de velocidad de movimiento
     ENERGY_STEP = 0.10,   -- +10% de energia por giro de manivela
-    FIRE_RATE_STEP = 0.10 -- +10% de cadencia de la pistola
+    FIRE_RATE_STEP = 0.10, -- +10% de cadencia de la pistola
+    PICKUP_STEP = 14,     -- pixeles extra de alcance para recoger gemas
+    REACH_STEP = 0.15     -- +15% de distancia a la que gira el arma
 }
 
 -- Convierte 0.15 en "15" para escribirlo en las descripciones
@@ -39,6 +41,16 @@ Upgrades.LIST = {
         name = "Carga",
         text = "+" .. percent(Upgrades.ENERGY_STEP) .. "% de energia por giro de la manivela",
         apply = function() Stats.energyMult = Stats.energyMult + Upgrades.ENERGY_STEP end,
+    },
+    {
+        name = "Alcance",
+        text = "+" .. percent(Upgrades.REACH_STEP) .. "% de distancia a la que gira el arma",
+        apply = function() Stats.reachMult = Stats.reachMult + Upgrades.REACH_STEP end,
+    },
+    {
+        name = "Iman",
+        text = "+" .. Upgrades.PICKUP_STEP .. " px de alcance para recoger gemas",
+        apply = function() Stats.pickupBonus = Stats.pickupBonus + Upgrades.PICKUP_STEP end,
     },
     {
         name = "Pistola",
