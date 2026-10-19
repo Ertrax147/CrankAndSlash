@@ -33,8 +33,8 @@ Ramas:
 Reglas para ti (Claude Code):
 1. **Al empezar cada sesión**, revisa la rama actual (`git branch --show-current`) y el estado (`git status`). Dime en qué rama estamos y si hay cambios sin guardar.
 2. **Nunca edites archivos estando en `main` o `develop`.** Si estamos en una de ellas, avísame y espera a que yo cambie a la rama de trabajo.
-3. **Crea ramas, cambia de rama y haz commits solo cuando yo te lo pida**, mostrándome el comando antes de ejecutarlo. **Nunca hagas `push`, `merge`, `rebase` ni `push --force`** sin que yo lo pida de forma explícita en ese mensaje. Antes de cualquier comando que pueda descartar trabajo (`git restore`, `git clean`, `git reset`, borrar carpetas), revisa `git status` y avísame qué se perdería.
-4. **Commits pequeños:** uno por paso del plan (o por grupo de pasos muy chicos), con formato `feat:`, `fix:` o `docs:` en español y sin tildes ni eñes. Al terminar un paso, sugiéreme el mensaje y espera a que yo te pida hacer el commit. Haz commit de cada paso apenas yo lo confirme, para no acumular trabajo sin guardar.
+3. **Crea ramas y cambia de rama solo cuando yo te lo pida**, mostrándome el comando antes de ejecutarlo. Los commits locales sí los haces tú sin pedirme confirmación (ver regla 4). **Nunca hagas `push`, `merge`, `rebase` ni `push --force`** sin que yo lo pida de forma explícita en ese mensaje. Antes de cualquier comando que pueda descartar trabajo (`git restore`, `git clean`, `git reset`, borrar carpetas), revisa `git status` y avísame qué se perdería.
+4. **Commits pequeños:** uno por paso del plan (o por grupo de pasos muy chicos), con formato `feat:`, `fix:` o `docs:` en español y sin tildes ni eñes. **Haz un commit local apenas termines cada paso, sin pedirme confirmación** (no sube nada y se puede corregir), para no acumular trabajo sin guardar y mantener los commits atómicos. Yo pruebo por tandas de varios pasos: al terminar una tanda, dime qué probar. Si algo falla, corrígelo con un commit `fix:`. El `push` y los PR siguen siendo solo cuando yo lo pida.
 5. **Los Pull Requests los creo y mergeo yo** desde GitHub. Cuando una funcionalidad esté terminada, súbela con `push` (si te lo pido) y pásame el link de comparación (`https://github.com/Ertrax147/CrankAndSlash/compare/develop...rama`) junto con el título y la descripción del PR (criterios de aceptación y cómo probarla). No ejecutes `gh pr create` ni `gh pr merge`; `gh` está instalado y autenticado, pero solo úsalo para consultar estados.
 6. Después de que yo mergee un PR, trae los cambios: `git checkout develop` y `git pull`, y recién ahí crea la rama de lo siguiente.
 
@@ -93,7 +93,11 @@ Todo el código está en `source/`. Cada archivo tiene una sola responsabilidad 
 | `weapon.lua` | Lista de armas del jugador (`Weapon.list`). Hoy solo la cuerpo a cuerpo orbital, cuya velocidad depende de `Energy.ratio()` |
 | `enemy.lua` | Enemigo perseguidor con pool (`Enemy.pool`), `spawn()` (alrededor de la cámara), `closest(x, y)`, `update(dt)`, `draw()` |
 | `projectile.lua` | Proyectiles de la pistola con su propio pool: `spawn`, `update` (se liberan al salir de pantalla), `draw` |
-| `ranged.lua` | La pistola: dispara sola al enemigo más cercano; cadencia según energía; se desbloquea en `UNLOCK_ROUND` |
+| `ranged.lua` | La pistola: dispara sola al enemigo más cercano; cadencia según energía; empieza apagada y se enciende con `Ranged.unlocked` (la mejora "Pistola" del menú de nivel) |
+| `gems.lua` | Gemas de XP que sueltan los enemigos (pool; si se llena recicla la más lejana); se recogen al tocarlas |
+| `xp.lua` | Experiencia y nivel del jugador: `add`, `needed`, `ratio` |
+| `stats.lua` | Modificadores de las estadísticas del jugador (vida extra, velocidad, daño, energía, cadencia, alcance de recogida y del arma); cada módulo los aplica a su valor base |
+| `upgrades.lua` | Lista de mejoras que se ofrecen al subir de nivel (`available` decide si una se ofrece) y `pickChoices()` |
 | `combat.lua` | Revisa colisiones arma-enemigo, proyectil-enemigo y enemigo-jugador y aplica el daño |
 
 **Idea clave de la cámara:** toda la lógica (movimiento, colisiones, daño) trabaja en **coordenadas de mundo**; solo el dibujo convierte a pantalla con `Camera.toScreen`. Por eso `collision.lua` y `combat.lua` no dependen de la cámara. Cualquier cosa que necesite saber "si está dentro de la pantalla" (como borrar proyectiles) debe convertir con la cámara, no comparar contra `Config.SCREEN_W/H` directo.
@@ -120,13 +124,14 @@ El profesor **no ha confirmado** si son obligatorios el Object Pooling, la máqu
 
 ## Diseño previsto
 
-Ya implementado: rondas, tipos de arma, pistola, desbloqueo de arma en la ronda 2, mapa infinito con cámara (RF-07 a RF-11). **Ojo:** que la pistola se desbloquee en la ronda 2 es provisorio (para probar dos armas en el prototipo); en el diseño final las armas se compran en la tienda.
+Ya implementado: rondas, tipos de arma, pistola, mapa infinito con cámara, gemas de XP y niveles con menú de mejoras (RF-07 a RF-13). La pistola ya no se desbloquea en la ronda 2: se consigue como una mejora (una sola vez) al subir de nivel. **Abierto:** si más adelante habrá tienda (como Brotato) o si bastará con que armas y estadísticas salgan en el menú de nivel (como Vampire Survivors). Más armas y subir de nivel las armas quedan para la iteración 4; ojo que hoy cada enemigo tiene un solo temporizador de golpe compartido por todas las armas cuerpo a cuerpo, habría que darle uno a cada arma.
 
 - **Mapa más vistoso (en evaluación, rama de experimento):** reemplazar la grilla de puntos por un tile de pasto 1-bit y agregar decoraciones (árboles, farolas) repartidas de forma fija y poco frecuente por el mundo infinito. Pendiente: hacer el pasto más grande (dibujarlo escalado) y definir cómo se reparten las decoraciones. Aún no es parte del plan oficial.
 - **Fuera del MVP (deseables):** dificultad creciente, menú de inicio y pantalla de victoria, tienda y monedas, más tipos de enemigos y armas, sonido y arte final.
 - **Ya definido en el GDD v0.4 (docs en Google Docs / `.docx`):** XP y subida de nivel automática (sección 5), 3 tipos de enemigo (básico, rápido, tanque), 4-5 armas (espada, maza, lanza, pistola, escopeta, lanzallamas), tienda entre rondas con monedas. El profesor ya sabe que veremos experiencia y UI.
 - **Decisiones recientes:** mundo infinito (mezcla de Brotato, con rondas y tienda, y Vampire Survivors, con mundo que se desplaza y recolección de gemas). Idea aprobada: **jefe cada 5 rondas**.
 - **Por confirmar:** duración de la partida. Propuesta: 10 rondas, jefe en la 5 y la 10, pantalla de victoria al ganar la 10 (como Brotato). Vampire Survivors también tiene un límite (30 min).
+- **Decisión de armas (opción C, mezcla de Vampire Survivors y Brotato):** cada arma sube de nivel al volver a elegirla en el menú de nivel, y algunos niveles se manifiestan como una copia más (Pistola Nv. 2 = una segunda pistola; arma que gira Nv. 2 = una segunda arma orbitando al lado opuesto). Tope pensado: unas 3 o 4 copias por arma, porque la pantalla es de 400x240 en blanco y negro y más cosas girando se vuelve ilegible. Por ahora (RF-13) hay una sola pistola y no se repite. Para hacerlo (iteración 4) hace falta: un temporizador de golpe por arma, que cada pistola apunte a un enemigo distinto, y ángulos distintos para las armas que giran.
 - **Ideas aún sin decidir:** estela en las armas con la energía al máximo; podría ser comportamiento base. La manivela como imán de gemas se probó y se descartó (por ahora las gemas solo se recogen al tocarlas); podría volver como objeto de la tienda.
 
 ---
@@ -154,7 +159,7 @@ Los identificadores RF corresponden a los requisitos del documento de avance. Ma
 - [x] **Paso 12.** La cadencia de disparo aumenta con `Energy.ratio()`.
 
 ### RF-10 — Desbloqueo de arma al avanzar de ronda — hecho, mergeado a `develop`
-- [x] **Paso 13.** La pistola se desbloquea en la ronda 2 (`Ranged.UNLOCK_ROUND`); al reiniciar, vuelve al estado inicial.
+- [x] **Paso 13.** La pistola se desbloquea en la ronda 2 (`Ranged.UNLOCK_ROUND`); al reiniciar, vuelve al estado inicial. (Reemplazado en RF-13: ahora es una mejora del menú de nivel.)
 
 ### RF-11 — Mapa y cámara — hecho, mergeado a `develop`
 Sugerido por el profesor: que el mapa se mueva, estilo Vampire Survivors. Mundo infinito; el jugador queda centrado y el mundo se desplaza.
@@ -170,7 +175,10 @@ Pasto ralo, caminos de grava que serpentean, farolas al borde de los caminos, ar
 - [x] **Paso 22.** Los enemigos sueltan una gema al morir (`gems.lua`, con pool).
 - [x] **Paso 23.** Las gemas se recogen y suman experiencia (`xp.lua`). Se probó un imán que las atraía (y que crecía con la manivela), pero se quitó: ahora solo se recogen al tocarlas.
 - [x] **Paso 24.** Barra de XP abajo a la derecha, nivel ("Nv. N") y aviso "Nivel N" al subir.
-- [ ] **Paso 26 (pendiente, por definir).** `stats.lua` y bono automático al subir de nivel. Falta decidir qué estadísticas suben y cuánto (idea inicial: rotar vida máxima +1, daño +10%, velocidad +8%, energía +10%).
+- [x] **Paso 25.** `stats.lua`: modificadores del jugador (vida extra, velocidad, daño, energía, cadencia) que cada módulo aplica a su valor base.
+- [x] **Paso 26.** `upgrades.lua` y menú al subir de nivel (el juego se pausa; arriba/abajo y A para elegir 1 de 3 mejoras al azar). Se cambió el plan: en vez de un bono automático, el jugador elige. Mejoras: Vitalidad, Fuerza, Rapidez, Carga, Punteria (solo con pistola), Pistola (arma nueva, una sola vez), Iman (alcance de recogida) y Alcance (del arma que gira). El HUD muestra la vida como actual/máxima y aparece un aviso con la mejora elegida.
+- [x] Las gemas se reciclan (la más lejana) cuando el pool está lleno, para que el XP no se frene.
+- [ ] Pendiente: ajustar el balance jugando (XP por nivel, tamaño de cada mejora) y definir qué pasa con las armas (subirlas de nivel, más tipos).
 
 ### Hoja de ruta (la práctica termina el 20 de diciembre; reunión con el profesor cada 2 semanas)
 Cada iteración = una rama y un PR, con commits atómicos por paso. El profesor pidió elegir bien qué funcionalidad mostrar en cada reunión.
