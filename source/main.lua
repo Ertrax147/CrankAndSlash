@@ -21,6 +21,7 @@ import "entities/gems"
 import "entities/projectile"
 import "systems/ranged"
 import "systems/combat"
+import "systems/spawner"
 import "ui/hud"
 import "ui/debug"
 import "ui/notices"
@@ -28,7 +29,6 @@ import "ui/level_menu"
 
 local gfx = playdate.graphics
 
-local spawnTimer = 0
 local gameOver = false
 
 -- Deja el juego como al empezar (se llama al arrancar y al reiniciar despues de morir)
@@ -45,8 +45,8 @@ local function resetGame()
     Projectile.reset()
     Ranged.reset()
     Notices.reset()
+    Spawner.reset()
     LevelMenu.reset() -- despues de Xp.reset: toma el nivel inicial
-    spawnTimer = 0
     gameOver = false
 end
 
@@ -60,11 +60,10 @@ function playdate.update()
     elseif not gameOver then
         Energy.update(dt)
         if Round.update(dt) then
-            Enemy.clearNormals() -- el jefe, si sigue vivo, no desaparece
+            Spawner.newRound()
             local roundText = "Ronda " .. Round.number
             if Difficulty.isBossRound() then roundText = roundText .. " - JEFE!" end
             Notices.show("round", roundText)
-            if Difficulty.isBossRound() and not Enemy.bossAlive() then Enemy.spawnBoss() end
         end
         Notices.update(dt)
         Player.update(dt)
@@ -72,12 +71,7 @@ function playdate.update()
         Weapon.update(dt)
         Ranged.update(dt)
 
-        spawnTimer = spawnTimer + dt
-        if spawnTimer >= Difficulty.spawnInterval() then
-            spawnTimer = 0
-            Enemy.spawn()
-        end
-
+        Spawner.update(dt)
         Enemy.update(dt)
         Projectile.update(dt)
         Combat.update()
