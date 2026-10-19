@@ -5,6 +5,7 @@ import "pool"
 import "collision"
 import "energy"
 import "round"
+import "difficulty"
 import "xp"
 import "stats"
 import "upgrades"
@@ -152,7 +153,7 @@ function playdate.update()
         Ranged.update(dt)
 
         spawnTimer = spawnTimer + dt
-        if spawnTimer >= Config.SPAWN_INTERVAL then
+        if spawnTimer >= Difficulty.spawnInterval() then
             spawnTimer = 0
             Enemy.spawn()
         end

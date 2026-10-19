@@ -3,7 +3,7 @@
 local gfx = playdate.graphics
 
 Enemy = {
-    POOL_SIZE = 40,
+    POOL_SIZE = 70, -- mas que antes: en las rondas altas aparecen muchos mas enemigos a la vez
 }
 
 local function newEnemyObject()
@@ -63,7 +63,7 @@ function Enemy.spawn()
         e.x = right + r; e.y = math.random(top, bottom)
     end
     e.def = def
-    e.hp = def.HP
+    e.hp = def.HP * Difficulty.hpMult() -- mas vida en las rondas altas
     e.hitTimer = 0
     e.animTimer = math.random() * def.ANIM_TIME * 2 -- empieza en un punto al azar, asi no aletean todos igual
 end
