@@ -1,11 +1,12 @@
 -- Armas del jugador: cada una gira sola alrededor del personaje.
 -- La energia de la manivela solo cambia su velocidad de giro.
--- Weapon.list guarda todas las armas activas del jugador (hoy solo una, la cuerpo a cuerpo).
+-- Weapon.list guarda todas las armas activas del jugador (hoy solo una, la espada larga).
+-- Cada arma tiene su zona de dano en w.hits: una lista de circulos {x, y, r} que se mueven con ella.
 local gfx = playdate.graphics
 
 Weapon = {}
 
--- Dibujo de la cabeza de cada tipo de arma, cargado una sola vez: images["MELEE"], etc.
+-- Dibujo de cada tipo de arma, cargado una sola vez: images["ESPADA_LARGA"], etc.
 local images = {}
 for typeName, def in pairs(WeaponTypes) do
     images[typeName] = gfx.image.new(def.SPRITE)
@@ -14,24 +15,40 @@ end
 local CHAIN_SPACING = 4 -- pixeles entre un eslabon de la cadena y el siguiente
 local CHAIN_END_GAP = 8 -- la cadena se corta antes de la cabeza, que la tapa
 
--- Crea una tabla de arma nueva a partir de su tipo (ej: "MELEE"), buscando
+-- Pone el arma segun su angulo: calcula el centro del dibujo (w.x, w.y) y la posicion de cada
+-- circulo de su zona de dano. Los circulos estan sobre la linea que sale del jugador hacia el arma.
+local function place(w)
+    local def = w.def
+    local rad = math.rad(w.angle)
+    local cosA = math.cos(rad)
+    local sinA = math.sin(rad)
+    local orbit = def.ORBIT_RADIUS * Stats.reachMult -- la mejora "Alcance" aleja el arma
+    w.x = Player.x + orbit * cosA
+    w.y = Player.y + orbit * sinA
+    for k = 1, #def.HITBOXES do
+        local hitbox = def.HITBOXES[k]
+        local hit = w.hits[k]
+        hit.x = w.x + hitbox.offset * cosA
+        hit.y = w.y + hitbox.offset * sinA
+    end
+end
+
+-- Crea una tabla de arma nueva a partir de su tipo (ej: "ESPADA_LARGA"), buscando
 -- los valores en WeaponTypes. Cada arma tiene su propia posicion y angulo,
 -- para que en el futuro puedan girar varias armas al mismo tiempo.
 local function newWeapon(typeName, startAngle)
     local def = WeaponTypes[typeName]
-    local angle = startAngle or 0
-    return {
-        type = typeName,
-        def = def,
-        angle = angle,
-        x = Player.x + def.ORBIT_RADIUS * math.cos(math.rad(angle)),
-        y = Player.y + def.ORBIT_RADIUS * math.sin(math.rad(angle)),
-    }
+    local w = { type = typeName, def = def, angle = startAngle or 0, x = 0, y = 0, hits = {} }
+    for k = 1, #def.HITBOXES do
+        w.hits[k] = { x = 0, y = 0, r = def.HITBOXES[k].radius }
+    end
+    place(w)
+    return w
 end
 
 -- Reinicia la lista de armas del jugador a su estado inicial
 function Weapon.reset()
-    Weapon.list = { newWeapon("MELEE") }
+    Weapon.list = { newWeapon("ESPADA_LARGA") }
 end
 
 -- Actualiza la posicion de cada arma: gira alrededor del personaje,
@@ -42,10 +59,7 @@ function Weapon.update(dt)
         local def = w.def
         local speed = def.BASE_SPEED + (def.MAX_SPEED - def.BASE_SPEED) * Energy.ratio()
         w.angle = (w.angle + speed * dt) % 360
-        local rad = math.rad(w.angle)
-        local orbit = def.ORBIT_RADIUS * Stats.reachMult -- la mejora "Alcance" aleja el arma
-        w.x = Player.x + orbit * math.cos(rad)
-        w.y = Player.y + orbit * math.sin(rad)
+        place(w)
     end
 end
 
@@ -68,15 +82,17 @@ local function drawChain(x0, y0, x1, y1)
     end
 end
 
--- Dibuja cada arma: la cadena que la une al personaje (solo visual) y la cabeza del arma en la
--- punta, que es la parte que si hace dano (su zona de colision es el circulo de RADIUS).
+-- Dibuja cada arma: su cadena (si tiene, es solo visual) y su dibujo en el centro del arma.
+-- Lo que hace dano son los circulos de w.hits, no el dibujo (ver DEBUG_HITBOXES).
 function Weapon.draw()
     gfx.setColor(gfx.kColorBlack)
     local playerScreenX, playerScreenY = Camera.toScreen(Player.x, Player.y)
     for i = 1, #Weapon.list do
         local w = Weapon.list[i]
         local screenX, screenY = Camera.toScreen(w.x, w.y)
-        drawChain(playerScreenX, playerScreenY, screenX, screenY)
+        if not w.def.NO_CHAIN then
+            drawChain(playerScreenX, playerScreenY, screenX, screenY)
+        end
         local image = images[w.type]
         if w.def.ROTATE then
             -- los dibujos miran hacia arriba: se giran (angle + 90) para apuntar hacia afuera de la orbita

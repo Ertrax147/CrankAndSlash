@@ -95,8 +95,11 @@ local function drawHitboxes()
     end
     for i = 1, #Weapon.list do
         local w = Weapon.list[i]
-        local x, y = Camera.toScreen(w.x, w.y)
-        gfx.drawCircleAtPoint(x, y, w.def.RADIUS)
+        for k = 1, #w.hits do
+            local hit = w.hits[k]
+            local x, y = Camera.toScreen(hit.x, hit.y)
+            gfx.drawCircleAtPoint(x, y, hit.r)
+        end
     end
     local projectiles = Projectile.pool.items
     for i = 1, #projectiles do

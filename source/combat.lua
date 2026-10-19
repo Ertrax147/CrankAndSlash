@@ -21,21 +21,28 @@ function Combat.update()
     for i = 1, #items do
         local e = items[i]
         if e.active then
-            -- armas vs enemigo: recorre todas las armas del jugador (Weapon.list)
-            -- y revisa si alguna esta tocando a este enemigo.
-            -- e.hitTimer evita que un arma le pegue todos los frames mientras lo toca:
-            -- despues de un golpe, el enemigo queda "inmune" por HIT_COOLDOWN segundos.
+            -- armas vs enemigo: recorre todas las armas del jugador (Weapon.list) y, de cada una, los
+            -- circulos de su zona de dano (w.hits); si alguno toca a este enemigo, le pega.
+            -- e.hitTimer evita que un arma le pegue todos los frames mientras lo toca (o que una
+            -- espada larga le pegue varias veces en un solo barrido): despues de un golpe, el enemigo
+            -- queda "inmune" por HIT_COOLDOWN segundos.
             if e.hitTimer <= 0 then
+                local struck = false
                 for j = 1, #Weapon.list do
                     local w = Weapon.list[j]
-                    if Collision.circles(w.x, w.y, w.def.RADIUS, e.x, e.y, e.def.RADIUS) then
-                        e.hp = e.hp - w.def.DAMAGE * Stats.damageMult
-                        e.hitTimer = w.def.HIT_COOLDOWN
-                        if e.hp <= 0 then
-                            killEnemy(e)
+                    for k = 1, #w.hits do
+                        local hit = w.hits[k]
+                        if Collision.circles(hit.x, hit.y, hit.r, e.x, e.y, e.def.RADIUS) then
+                            e.hp = e.hp - w.def.DAMAGE * Stats.damageMult
+                            e.hitTimer = w.def.HIT_COOLDOWN
+                            if e.hp <= 0 then
+                                killEnemy(e)
+                            end
+                            struck = true
+                            break
                         end
-                        break -- ya se encontro un golpe este frame, no revisar mas armas
                     end
+                    if struck then break end -- ya se encontro un golpe este frame, no revisar mas armas
                 end
             end
             -- proyectiles vs enemigo: un proyectil hace dano y desaparece al primer golpe
