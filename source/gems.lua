@@ -18,10 +18,29 @@ end
 
 Gems.pool = Pool.new(Gems.POOL_SIZE, newGemObject)
 
--- Activa una gema en (x, y), el lugar donde murio el enemigo
+-- Devuelve la gema activa mas lejos del jugador (se usa cuando el pool esta lleno)
+local function farthestGem()
+    local farthest = nil
+    local farthestDist2 = -1
+    local items = Gems.pool.items
+    for i = 1, #items do
+        local g = items[i]
+        local dx = g.x - Player.x
+        local dy = g.y - Player.y
+        local dist2 = dx * dx + dy * dy
+        if dist2 > farthestDist2 then
+            farthest = g
+            farthestDist2 = dist2
+        end
+    end
+    return farthest
+end
+
+-- Activa una gema en (x, y), el lugar donde murio el enemigo.
+-- Si el pool esta lleno, reutiliza la gema mas lejana del jugador (las que quedaron olvidadas atras),
+-- para que las gemas nuevas siempre aparezcan.
 function Gems.spawn(x, y)
-    local g = Gems.pool:acquire()
-    if not g then return end -- pool lleno: esta gema no aparece
+    local g = Gems.pool:acquire() or farthestGem()
     g.x = x
     g.y = y
     g.value = Gems.VALUE
