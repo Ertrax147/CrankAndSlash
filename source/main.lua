@@ -167,9 +167,9 @@ function playdate.update()
     elseif not gameOver then
         Energy.update(dt)
         if Round.update(dt) then
-            Enemy.reset()
+            Enemy.clearNormals() -- el jefe, si sigue vivo, no desaparece
             announceTimer = ANNOUNCE_DURATION
-            if Difficulty.isBossRound() then Enemy.spawnBoss() end
+            if Difficulty.isBossRound() and not Enemy.bossAlive() then Enemy.spawnBoss() end
         end
         if announceTimer > 0 then
             announceTimer = announceTimer - dt

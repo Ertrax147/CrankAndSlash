@@ -22,19 +22,20 @@ loadFrames(EnemyTypes.BOSS) -- el jefe no esta en LIST, pero tambien tiene sus d
 
 Enemy.pool = Pool.new(Enemy.POOL_SIZE, newEnemyObject)
 
--- Elige un tipo de enemigo al azar entre los que ya pueden aparecer en esta ronda (MIN_ROUND),
--- con mas probabilidad para los de mayor WEIGHT.
+-- Elige un tipo de enemigo al azar entre los que ya pueden aparecer en este nivel de dificultad
+-- (MIN_ROUND), con mas probabilidad para los de mayor WEIGHT.
 local function pickType()
+    local level = Difficulty.level()
     local total = 0
     for i = 1, #EnemyTypes.LIST do
         local t = EnemyTypes.LIST[i]
-        if Round.number >= t.MIN_ROUND then total = total + t.WEIGHT end
+        if level >= t.MIN_ROUND then total = total + t.WEIGHT end
     end
     local roll = math.random(total)
     local accumulated = 0
     for i = 1, #EnemyTypes.LIST do
         local t = EnemyTypes.LIST[i]
-        if Round.number >= t.MIN_ROUND then
+        if level >= t.MIN_ROUND then
             accumulated = accumulated + t.WEIGHT
             if roll <= accumulated then return t end
         end
@@ -83,6 +84,28 @@ end
 
 function Enemy.reset()
     Enemy.pool:releaseAll()
+end
+
+-- Quita a los enemigos normales pero deja al jefe: asi, si no lo matas dentro de la ronda,
+-- sigue persiguiendote en la siguiente.
+function Enemy.clearNormals()
+    local items = Enemy.pool.items
+    for i = 1, #items do
+        local e = items[i]
+        if e.active and not e.def.BOSS then
+            Enemy.pool:release(e)
+        end
+    end
+end
+
+-- true si hay un jefe vivo (para no hacer aparecer otro mientras el anterior sigue)
+function Enemy.bossAlive()
+    local items = Enemy.pool.items
+    for i = 1, #items do
+        local e = items[i]
+        if e.active and e.def.BOSS then return true end
+    end
+    return false
 end
 
 -- Devuelve el enemigo activo mas cercano al punto (x, y), o nil si no hay ninguno.
