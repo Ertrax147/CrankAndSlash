@@ -55,6 +55,16 @@ rows[5] = {
     options = { { text = "No", value = false }, { text = "Si", value = true } },
     apply = function(unlocked) Ranged.startUnlocked = unlocked end,
 }
+rows[6] = {
+    label = "Rayos", index = 1,
+    options = {
+        { text = "Cuerpo", value = "BODY" },
+        { text = "Antena", value = "ANTENNA" },
+        { text = "Ambos", value = "BOTH" },
+        { text = "Ninguno", value = "NONE" },
+    },
+    apply = function(mode) Player.boltMode = mode end,
+}
 local cursor = 1 -- fila seleccionada
 
 -- Deja elegido el personaje que indica Config.DEBUG_CHARACTER (se llama al abrir el juego)

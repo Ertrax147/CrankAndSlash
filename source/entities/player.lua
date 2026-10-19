@@ -7,6 +7,7 @@ Player = {
     MAX_HP = 5,
     INVULN_TIME = 1.0, -- segundos sin recibir dano despues de un golpe
     FRAME_TIME = 0.15, -- segundos que dura cada cuadro de la caminata
+    boltMode = "BODY", -- de donde salen los rayos: "BODY", "ANTENNA", "BOTH" o "NONE" (lo cambia la pantalla de pruebas)
     -- manivela de la caja (se dibuja por codigo, solo si el personaje la tiene: ver data/characters.lua)
     CRANK_LENGTH = 7,
     CRANK_MAX_SPEED = 6,     -- radianes por segundo con la energia llena (mas rapido se ve como temblor a 30 fps)
@@ -17,6 +18,7 @@ Player = {
     BOLT_STEP = 2.5,         -- largo minimo de cada tramo del zigzag (se le suma hasta 1 px al azar)
     BOLT_COUNT_LOW = 2,      -- rayos con energia media
     BOLT_COUNT_HIGH = 4,     -- rayos con energia alta (mas del 60%)
+    BOLT_ANTENNA_RADIUS = 3, -- a que distancia del centro de la bola de la antena nace cada rayo
     BOLT_TICK = 0.1,         -- cada cuantos segundos cambia la forma de los rayos
 }
 
@@ -111,27 +113,50 @@ local function drawCrank(pivotX, pivotY, side)
     gfx.fillCircleAtPoint(tipX, tipY, 2) -- la perilla
 end
 
--- Dibuja rayos en zigzag alrededor del personaje: mas rayos cuanto mas energia
-local function drawBolts(centerX, centerY)
+-- Dibuja un rayo en zigzag que sale de (startX, startY) hacia el angulo "base". "id" y "tick" solo
+-- sirven para que cada rayo tenga su forma y esta cambie cada BOLT_TICK segundos.
+local function drawBolt(startX, startY, base, id, tick)
+    local x, y = startX, startY
+    local side = 1
+    for k = 1, Player.BOLT_SEGMENTS do
+        -- un quiebre brusco hacia un lado y luego hacia el otro, avanzando hacia afuera
+        local turned = base + side * (0.8 + noise(id, k + 1, tick) * 0.4)
+        side = -side
+        local step = Player.BOLT_STEP + noise(id, k + 10, tick)
+        local nextX = x + math.cos(turned) * step + math.cos(base) * 2
+        local nextY = y + math.sin(turned) * step + math.sin(base) * 2
+        drawOutlinedLine(x, y, nextX, nextY)
+        x, y = nextX, nextY
+    end
+end
+
+-- Dibuja los rayos segun Player.boltMode: "BODY" (alrededor del cuerpo), "ANTENNA" (solo desde la
+-- bola de la antena, hacia arriba) o "BOTH". Mas rayos cuanto mas energia. Si el personaje no tiene
+-- antena, "ANTENNA" los dibuja alrededor del cuerpo.
+local function drawBolts(centerX, centerY, antennaX, antennaY)
     local ratio = Energy.ratio()
-    if ratio < Player.BOLT_MIN_ENERGY then return end
+    if ratio < Player.BOLT_MIN_ENERGY or Player.boltMode == "NONE" then return end
     local count = Player.BOLT_COUNT_LOW
     if ratio > 0.6 then count = Player.BOLT_COUNT_HIGH end
     local tick = math.floor(Player.boltTime / Player.BOLT_TICK) -- la forma cambia cada BOLT_TICK
-    for i = 1, count do
-        local base = (i / count) * 2 * math.pi + (noise(i, 1, tick) - 0.5) * 0.6
-        local x = centerX + math.cos(base) * Player.BOLT_RADIUS
-        local y = centerY + math.sin(base) * Player.BOLT_RADIUS
-        local side = 1
-        for k = 1, Player.BOLT_SEGMENTS do
-            -- un quiebre brusco hacia un lado y luego hacia el otro, avanzando hacia afuera
-            local turned = base + side * (0.8 + noise(i, k + 1, tick) * 0.4)
-            side = -side
-            local step = Player.BOLT_STEP + noise(i, k + 10, tick)
-            local nextX = x + math.cos(turned) * step + math.cos(base) * 2
-            local nextY = y + math.sin(turned) * step + math.sin(base) * 2
-            drawOutlinedLine(x, y, nextX, nextY)
-            x, y = nextX, nextY
+
+    local fromBody = Player.boltMode ~= "ANTENNA" or antennaX == nil
+    local fromAntenna = antennaX ~= nil and Player.boltMode ~= "BODY"
+    if fromBody and fromAntenna then count = math.max(1, count // 2) end -- con los dos, la mitad en cada uno
+
+    if fromBody then
+        for i = 1, count do
+            local base = (i / count) * 2 * math.pi + (noise(i, 1, tick) - 0.5) * 0.6
+            drawBolt(centerX + math.cos(base) * Player.BOLT_RADIUS, centerY + math.sin(base) * Player.BOLT_RADIUS,
+                base, i, tick)
+        end
+    end
+    if fromAntenna then
+        for i = 1, count do
+            -- repartidos en abanico por encima de la bola (de -180 a 0 grados; el eje y de la pantalla baja)
+            local base = -math.pi + ((i - 0.5) / count) * math.pi + (noise(i, 2, tick) - 0.5) * 0.4
+            drawBolt(antennaX + math.cos(base) * Player.BOLT_ANTENNA_RADIUS,
+                antennaY + math.sin(base) * Player.BOLT_ANTENNA_RADIUS, base, i + 20, tick)
         end
     end
 end
@@ -147,13 +172,18 @@ function Player.draw()
     local w, h = image:getSize()
     local side = Player.facingLeft and -1 or 1 -- al mirar a la izquierda todo se refleja
     -- el pivote baja 1 px en el segundo cuadro, igual que el cuerpo
+    local antennaX, antennaY
+    if Player.character.ANTENNA_X then
+        antennaX = screenX + side * (Player.character.ANTENNA_X - w / 2)
+        antennaY = screenY + (Player.character.ANTENNA_Y + frame - 1) - h / 2
+    end
     local pivotX, pivotY
     if Player.character.CRANK_PIVOT_X then
         pivotX = screenX + side * (Player.character.CRANK_PIVOT_X - w / 2)
         pivotY = screenY + (Player.character.CRANK_PIVOT_Y + frame - 1) - h / 2
     end
 
-    if Player.character.BOLTS then drawBolts(screenX, screenY) end
+    if Player.character.BOLTS then drawBolts(screenX, screenY, antennaX, antennaY) end
     if Player.character.CRANK_PIVOT_X then drawCrank(pivotX, pivotY, side) end
     local flip = Player.facingLeft and gfx.kImageFlippedX or gfx.kImageUnflipped
     image:draw(screenX - w / 2, screenY - h / 2, flip)

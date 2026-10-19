@@ -112,6 +112,8 @@ def run(seed, debug_hitboxes):
         # cambia de personaje jugable cada tanto, para probar los dibujos y datos de todos
         if frame % 500 == 0:
             lua.execute(f"Player.setCharacter(Characters.LIST[({frame // 500} + {seed}) % #Characters.LIST + 1])")
+            modes = ("BODY", "ANTENNA", "BOTH", "NONE")
+            lua.execute(f'Player.boltMode = "{modes[(frame // 500 + seed) % 4]}"')
 
         # empujones para llegar rapido a situaciones raras
         if frame % 150 == 0:
@@ -120,6 +122,8 @@ def run(seed, debug_hitboxes):
             lua.execute("Round.timeLeft = 0.01")  # fuerza el cambio de ronda
         if frame % 400 == 0:
             lua.execute("Energy.value = Energy.MAX")
+        if frame % 400 == 200:
+            lua.execute("Energy.value = Energy.MAX * 0.4")  # energia media: pocos rayos
 
         ok, err = lua.eval("Harness.frame()")
         if not ok:
