@@ -1,7 +1,6 @@
 -- Combate: revisa las colisiones y aplica el dano
-Combat = {
-    CONTACT_DAMAGE = 1, -- dano que hace un enemigo al tocar al jugador
-}
+-- El tamano (RADIUS) y el dano por contacto (DAMAGE) de cada enemigo vienen de su tipo: e.def
+Combat = {}
 
 -- Se llama cuando un enemigo se queda sin vida: suelta una gema donde murio y vuelve al pool
 local function killEnemy(e)
@@ -21,7 +20,7 @@ function Combat.update()
             if e.hitTimer <= 0 then
                 for j = 1, #Weapon.list do
                     local w = Weapon.list[j]
-                    if Collision.circles(w.x, w.y, w.def.RADIUS, e.x, e.y, Enemy.RADIUS) then
+                    if Collision.circles(w.x, w.y, w.def.RADIUS, e.x, e.y, e.def.RADIUS) then
                         e.hp = e.hp - w.def.DAMAGE * Stats.damageMult
                         e.hitTimer = w.def.HIT_COOLDOWN
                         if e.hp <= 0 then
@@ -36,7 +35,7 @@ function Combat.update()
                 local projectiles = Projectile.pool.items
                 for j = 1, #projectiles do
                     local p = projectiles[j]
-                    if p.active and Collision.circles(p.x, p.y, Projectile.RADIUS, e.x, e.y, Enemy.RADIUS) then
+                    if p.active and Collision.circles(p.x, p.y, Projectile.RADIUS, e.x, e.y, e.def.RADIUS) then
                         e.hp = e.hp - Projectile.DAMAGE * Stats.damageMult
                         Projectile.pool:release(p)
                         if e.hp <= 0 then
@@ -47,8 +46,8 @@ function Combat.update()
                 end
             end
             -- enemigo vs jugador: si un enemigo toca al jugador, le hace dano de contacto
-            if e.active and Collision.circles(Player.x, Player.y, Player.RADIUS, e.x, e.y, Enemy.RADIUS) then
-                Player.hurt(Combat.CONTACT_DAMAGE)
+            if e.active and Collision.circles(Player.x, Player.y, Player.RADIUS, e.x, e.y, e.def.RADIUS) then
+                Player.hurt(e.def.DAMAGE)
             end
         end
     end
