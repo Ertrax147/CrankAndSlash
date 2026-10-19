@@ -3,6 +3,12 @@ Combat = {
     CONTACT_DAMAGE = 1, -- dano que hace un enemigo al tocar al jugador
 }
 
+-- Se llama cuando un enemigo se queda sin vida: suelta una gema donde murio y vuelve al pool
+local function killEnemy(e)
+    Gems.spawn(e.x, e.y)
+    Enemy.pool:release(e)
+end
+
 function Combat.update()
     local items = Enemy.pool.items
     for i = 1, #items do
@@ -19,7 +25,7 @@ function Combat.update()
                         e.hp = e.hp - w.def.DAMAGE
                         e.hitTimer = w.def.HIT_COOLDOWN
                         if e.hp <= 0 then
-                            Enemy.pool:release(e) -- vida en 0: el enemigo vuelve al pool
+                            killEnemy(e)
                         end
                         break -- ya se encontro un golpe este frame, no revisar mas armas
                     end
@@ -34,7 +40,7 @@ function Combat.update()
                         e.hp = e.hp - Projectile.DAMAGE
                         Projectile.pool:release(p)
                         if e.hp <= 0 then
-                            Enemy.pool:release(e)
+                            killEnemy(e)
                         end
                         break
                     end

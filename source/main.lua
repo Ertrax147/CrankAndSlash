@@ -11,6 +11,7 @@ import "map"
 import "weapon_types"
 import "weapon"
 import "enemy"
+import "gems"
 import "projectile"
 import "ranged"
 import "combat"
@@ -30,6 +31,7 @@ local function resetGame()
     Camera.reset()
     Weapon.reset()
     Enemy.reset()
+    Gems.reset()
     Projectile.reset()
     Ranged.reset()
     spawnTimer = 0
@@ -83,6 +85,7 @@ function playdate.update()
 
     gfx.clear(gfx.kColorWhite)
     Map.draw()
+    Gems.draw()
     Enemy.draw()
     Weapon.draw()
     Projectile.draw()
