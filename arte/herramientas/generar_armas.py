@@ -53,7 +53,7 @@ def chain(d, x0, y0, x1, y1):
         else:     d.rectangle((x-1,y-2,x,y+1),fill=B)
 
 designs=[("maza",maza),("hacha",hacha),("martillo",martillo),("espada",espada)]
-grass = Image.open('source/images/grass_tile.png').convert('RGBA').resize((32,32),Image.NEAREST)
+grass = Image.open('source/images/map/grass_tile.png').convert('RGBA').resize((32,32),Image.NEAREST)
 cols=len(designs); W=cols*90; H=130
 bg=Image.new('RGBA',(W,H),Wh)
 for x in range(0,W,32):

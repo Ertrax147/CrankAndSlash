@@ -1,6 +1,6 @@
 # Genera los dibujos de los enemigos (fantasma, murcielago, oso, golem, arana) con 2 cuadros cada uno.
 # Uso, desde la raiz del repositorio:  python arte/herramientas/generar_enemigos.py
-# Necesita Pillow (pip install Pillow). Los elegidos se copian a source/images/ con prefijo enemy_.
+# Necesita Pillow (pip install Pillow). Los elegidos se copian a source/images/enemies/ (sin el numero de candidato).
 from PIL import Image, ImageDraw, ImageFilter
 SCR = "arte/enemigos/"  # aqui se guarda la vista previa
 B=(0,0,0,255); Wh=(255,255,255,255); T=(0,0,0,0)
@@ -98,7 +98,7 @@ rows=[]
 for n,fn in designs:
     for f in (0,1):
         sp=halo(pad(fn(f),1),1); sp.save(f"arte/enemigos/{n}_{f+1}.png"); rows.append((n,f,sp))
-grass = Image.open('source/images/grass_tile.png').convert('RGBA').resize((32,32),Image.NEAREST)
+grass = Image.open('source/images/map/grass_tile.png').convert('RGBA').resize((32,32),Image.NEAREST)
 W=len(designs)*58+16; H=44
 bg=Image.new('RGBA',(W,H),Wh)
 for x in range(0,W,32):

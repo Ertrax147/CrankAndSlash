@@ -10,7 +10,7 @@ Gems = {
 
 -- Dibujo de la gema: un diamante de contorno. (El diamante negro, gem_diamante_negro.png, quedo
 -- guardado en source/images por si se quiere usar despues.)
-local gemImage = gfx.image.new("images/gem_diamante")
+local gemImage = gfx.image.new("images/gems/diamante")
 
 local function newGemObject()
     return { active = false, x = 0, y = 0, value = 0 }

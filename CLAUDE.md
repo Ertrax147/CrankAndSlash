@@ -84,7 +84,7 @@ Todo el código está en `source/`, organizado en carpetas por responsabilidad. 
 - `data/`: tablas con valores, sin lógica: `enemy_types`, `weapon_types`, `upgrades`. Para agregar un enemigo, arma o mejora se toca solo esta carpeta (más su dibujo en `images/`).
 - `entities/`: lo que existe y se mueve en el juego: `player`, `enemy`, `weapon`, `projectile`, `gems`.
 - `systems/`: las reglas del juego: `combat`, `difficulty`, `round`, `xp`, `stats`, `energy`, `ranged`.
-- `images/`: los dibujos que usa el juego (lo que no se usa va en `arte/`, fuera de `source/`).
+- `images/`: solo los dibujos que usa el juego, en subcarpetas: `map/` (pasto, camino, árboles, farola), `enemies/` (cada enemigo con sus cuadros `_1` y `_2`), `weapons/` y `gems/`. Todo lo que no se usa va en `arte/` (fuera de `source/`): `arte/enemigos`, `arte/armas`, `arte/gemas`, `arte/arboles` y `arte/originales` (los tilesets de chuckiecatt).
 - `main.lua` (en la raíz de `source/`) conecta todo. **Pendiente:** sacar de `main.lua` el HUD, el menú de subida de nivel y el dibujo de hitbox a una carpeta `ui/`, y preparar la máquina de estados.
 
 La tabla de abajo nombra los archivos sin carpeta.

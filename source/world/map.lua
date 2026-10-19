@@ -44,17 +44,17 @@ local VERTICAL = { salt = 11, offset = 12, spacing = 60, percent = 75 }
 local HORIZONTAL = { salt = 23, offset = 13, spacing = 84, percent = 55 }
 
 -- Las imagenes se cargan una sola vez; el pasto se agranda una sola vez (no en cada frame)
-local grassTile = gfx.image.new("images/grass_tile"):scaledImage(Map.SCALE)
-local dirtHalf = gfx.image.new("images/dirt_half")
+local grassTile = gfx.image.new("images/map/grass_tile"):scaledImage(Map.SCALE)
+local dirtHalf = gfx.image.new("images/map/dirt_half")
 -- Arbol con copa en tablero (relleno al 50%) y un brillo arriba: se distingue del pasto, que es
 -- claro, y no es negro solido, porque el jugador, las armas y los enemigos son negros y sobre un
 -- arbol negro solido desaparecian.
 -- Dos dibujos de arbol (el segundo es de copa blanca): se reparten segun TREE_FIRST_PERCENT.
 local treeImages = {
-    gfx.image.new("images/tree_light"),
-    gfx.image.new("images/tree_blanco"),
+    gfx.image.new("images/map/tree_light"),
+    gfx.image.new("images/map/tree_blanco"),
 }
-local lampImage = gfx.image.new("images/lamppost")
+local lampImage = gfx.image.new("images/map/lamppost")
 
 -- Convierte dos enteros en un numero "al azar" que siempre es el mismo para los mismos valores.
 -- Ojo: en la Playdate los enteros son de 32 bits, asi que todas las constantes deben ser menores

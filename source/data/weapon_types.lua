@@ -19,7 +19,7 @@ WeaponTypes = {
         DAMAGE = 1,
         BASE_SPEED = 120, MAX_SPEED = 540,
         HIT_COOLDOWN = 0.4,
-        SPRITE = "images/weapon_maza",
+        SPRITE = "images/weapons/maza",
     },
 
     -- Espada larga: el arma inicial. Gira directo desde el jugador; mas lenta que la maza, pero la
@@ -30,7 +30,7 @@ WeaponTypes = {
         DAMAGE = 1,
         BASE_SPEED = 100, MAX_SPEED = 450,
         HIT_COOLDOWN = 0.5,
-        SPRITE = "images/weapon_espada_larga", ROTATE = true, NO_CHAIN = true,
+        SPRITE = "images/weapons/espada_larga", ROTATE = true, NO_CHAIN = true,
     },
 
     -- Mandoble: grande y pesado. Pega el doble de fuerte, pero gira lento y tarda mas en volver a pegarle
@@ -44,6 +44,6 @@ WeaponTypes = {
         DAMAGE = 2,
         BASE_SPEED = 70, MAX_SPEED = 300,
         HIT_COOLDOWN = 0.7,
-        SPRITE = "images/weapon_mandoble", ROTATE = true, NO_CHAIN = true,
+        SPRITE = "images/weapons/mandoble", ROTATE = true, NO_CHAIN = true,
     },
 }
