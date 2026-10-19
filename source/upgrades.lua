@@ -1,5 +1,7 @@
 -- Mejoras que se pueden elegir al subir de nivel. Cada una tiene un nombre, una descripcion corta
--- y una funcion "apply" que modifica las estadisticas (Stats). El menu muestra CHOICES al azar.
+-- y una funcion "apply" que modifica las estadisticas (Stats) o da algo nuevo (la pistola).
+-- Opcionalmente tiene "available": si existe y devuelve false, esa mejora no se ofrece (por
+-- ejemplo, la pistola no se ofrece si ya la tienes). El menu muestra CHOICES al azar.
 Upgrades = {
     CHOICES = 3,          -- cuantas opciones se ofrecen cada vez
     HP_STEP = 1,          -- vida maxima que da "Vitalidad" (y cuanto cura)
@@ -39,20 +41,30 @@ Upgrades.LIST = {
         apply = function() Stats.energyMult = Stats.energyMult + Upgrades.ENERGY_STEP end,
     },
     {
+        name = "Pistola",
+        text = "Arma nueva: dispara sola al enemigo mas cercano",
+        apply = function() Ranged.unlocked = true end,
+        available = function() return not Ranged.unlocked end, -- solo se ofrece una vez
+    },
+    {
         name = "Punteria",
         text = "+" .. percent(Upgrades.FIRE_RATE_STEP) .. "% de cadencia de la pistola",
         apply = function() Stats.fireRateMult = Stats.fireRateMult + Upgrades.FIRE_RATE_STEP end,
+        available = function() return Ranged.unlocked end, -- de nada sirve sin la pistola
     },
 }
 
--- Devuelve CHOICES mejoras distintas elegidas al azar
+-- Devuelve hasta CHOICES mejoras distintas elegidas al azar, entre las que estan disponibles
 function Upgrades.pickChoices()
     local pool = {}
     for i = 1, #Upgrades.LIST do
-        pool[i] = Upgrades.LIST[i]
+        local upgrade = Upgrades.LIST[i]
+        if not upgrade.available or upgrade.available() then
+            pool[#pool + 1] = upgrade
+        end
     end
     local choices = {}
-    for i = 1, Upgrades.CHOICES do
+    for i = 1, math.min(Upgrades.CHOICES, #pool) do
         local index = math.random(#pool)
         choices[i] = pool[index]
         table.remove(pool, index) -- ya salio: no se puede repetir en este menu
