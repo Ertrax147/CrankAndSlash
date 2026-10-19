@@ -48,7 +48,7 @@ Reglas para ti (Claude Code):
 - **Energía de la manivela:** girar la manivela (en cualquier sentido) carga una barra de energía. La energía baja sola con el tiempo. Cuanto más energía, más rápido gira el arma y más rápido dispara la pistola. Sin energía el arma sigue girando a velocidad base (nunca se detiene). La manivela **no apunta**: solo carga energía.
 - **Pistola (arma a distancia):** se desbloquea al comenzar la **ronda 2**. Dispara sola al enemigo más cercano. Los proyectiles (círculos chicos) viajan en línea recta, hacen daño y desaparecen al golpear o al salir de la pantalla.
 - **Rondas:** cada ronda dura 30 s. Se muestran la ronda y el tiempo restante arriba. Al terminar una ronda desaparecen los enemigos vivos y aparece el aviso "Ronda N" por 1,5 s. Las rondas siguen hasta que el jugador muere.
-- **Enemigos** (círculos sin relleno): aparecen justo afuera del borde visible de la pantalla, cada 1 s, y persiguen al jugador en línea recta.
+- **Enemigos** (dibujos animados de 2 cuadros): aparecen justo afuera del borde visible de la pantalla, cada 1 s, y persiguen al jugador. Hay 4 tipos y salen más variados a medida que avanzan las rondas: **fantasma** (normal, desde la ronda 1), **murciélago** (rápido y frágil, desde la 2), **araña** (rápida, en zigzag, desde la 3) y **oso** (tanque lento y resistente, hace 2 de daño, desde la 4).
 - El arma les quita vida al tocarlos; después de un golpe, ese enemigo no puede recibir otro del arma por 0,4 s.
 - Si un enemigo toca al jugador, este pierde 1 de vida y queda 1 s invulnerable (parpadea).
 - Si la vida llega a 0 aparece "GAME OVER"; con el botón A se reinicia (vuelve a la ronda 1, sin pistola).
@@ -62,14 +62,14 @@ Reglas para ti (Claude Code):
 | Módulo | Valores |
 |---|---|
 | Player | radio 8, velocidad 90 px/s, vida 5, invulnerabilidad 1 s |
-| Weapon (`WeaponTypes.MELEE`) | órbita 30 px, radio 6, daño 1, velocidad 120°/s (base) a 540°/s (energía llena), cooldown de golpe 0,4 s |
+| Weapon (ver `weapon_types.lua`) | Espada larga (inicial): órbita 30 px, 3 círculos de daño de radio 5, daño 1, 100°/s (base) a 450°/s (energía llena), espera por enemigo 0,5 s. Maza: 1 círculo de radio 6, 120 a 540°/s, 0,4 s. Mandoble: 4 círculos de radio 6, daño 2, 70 a 300°/s, 0,7 s (maza y mandoble definidos pero sin usar) |
 | Ranged | cooldown de disparo 1,0 s (sin energía) a 0,2 s (energía llena), se desbloquea en la ronda 2 |
 | Projectile | radio 3, velocidad 220 px/s, daño 1, pool de 20 |
 | Energy | máximo 100, +0,12 por grado girado, −12 por segundo |
-| Enemy | radio 7, velocidad 40 px/s, vida 3, pool de 40 |
+| Enemy (ver `enemy_types.lua`) | pool de 40. Fantasma: radio 7, 40 px/s, vida 3, daño 1. Murciélago: radio 6, 70 px/s, vida 2, desde ronda 2. Araña: radio 6, 55 px/s, vida 2, zigzag, desde ronda 3. Oso: radio 11, 22 px/s, vida 10, daño 2, desde ronda 4 |
 | Round | duración 30 s, aviso de 1,5 s |
 | Map | puntos cada 40 px (coordenadas de mundo), radio 1 |
-| Combat | daño por contacto al jugador: 1 |
+| Combat | el daño por contacto y el tamaño de cada enemigo vienen de su tipo (`enemy_types.lua`) |
 | Config | pantalla 400x240, dt = 1/30 (30 fps) |
 
 ---
@@ -89,9 +89,10 @@ Todo el código está en `source/`. Cada archivo tiene una sola responsabilidad 
 | `player.lua` | Movimiento con cruceta, vida, invulnerabilidad, dibujo (siempre centrado vía cámara) |
 | `camera.lua` | `Camera.x/y` sigue al jugador; `Camera.toScreen(worldX, worldY)` convierte posición de mundo a pantalla |
 | `map.lua` | Fondo: grilla de puntos dibujada con `Camera.toScreen` |
-| `weapon_types.lua` | Tabla de definiciones de armas (`WeaponTypes.MELEE`: daño, radio, velocidades, cooldown) |
-| `weapon.lua` | Lista de armas del jugador (`Weapon.list`). Hoy solo la cuerpo a cuerpo orbital, cuya velocidad depende de `Energy.ratio()` |
-| `enemy.lua` | Enemigo perseguidor con pool (`Enemy.pool`), `spawn()` (alrededor de la cámara), `closest(x, y)`, `update(dt)`, `draw()` |
+| `weapon_types.lua` | Tabla de definiciones de armas (`ESPADA_LARGA`, `MAZA`, `MANDOBLE`): órbita, zona de daño como lista de círculos (`HITBOXES`), daño, velocidades, espera por enemigo y dibujo |
+| `weapon.lua` | Lista de armas del jugador (`Weapon.list`): las coloca alrededor del jugador, las dibuja (con cadena o sin ella) y mueve su zona de daño (`w.hits`); su velocidad depende de `Energy.ratio()` |
+| `enemy_types.lua` | Tabla con los tipos de enemigo (tamaño, velocidad, vida, daño, desde qué ronda, frecuencia, dibujo, zigzag), solo valores |
+| `enemy.lua` | Enemigos con pool (`Enemy.pool`), cada uno con su tipo: `spawn()` (elige el tipo según la ronda, alrededor de la cámara), `closest(x, y)`, `update(dt)`, `draw()` (sprites animados) |
 | `projectile.lua` | Proyectiles de la pistola con su propio pool: `spawn`, `update` (se liberan al salir de pantalla), `draw` |
 | `ranged.lua` | La pistola: dispara sola al enemigo más cercano; cadencia según energía; empieza apagada y se enciende con `Ranged.unlocked` (la mejora "Pistola" del menú de nivel) |
 | `gems.lua` | Gemas de XP que sueltan los enemigos (pool; si se llena recicla la más lejana); se recogen al tocarlas |
@@ -118,7 +119,9 @@ El profesor **no ha confirmado** si son obligatorios el Object Pooling, la máqu
 
 ### Arte y créditos
 - El juego usa arte 1-bit: la pantalla del Playdate es solo blanco y negro puro. Las imágenes deben convertirse a 1-bit (con transparencia si van encima de otras cosas).
-- Rama `experimento/tileset-mapa`: prueba con el tileset gratuito "GameBoy-styled essential outdoor tiles" de **chuckiecatt** (itch.io), convertido a blanco y negro. **Si se usa en el juego final, hay que dar crédito a chuckiecatt.** Los recortes (pasto, árbol, farola) están en `source/images/`.
+- El pasto, el camino de grava y la farola salen del tileset gratuito "GameBoy-styled essential outdoor tiles" de **chuckiecatt** (itch.io), convertido a blanco y negro. **Hay que dar crédito a chuckiecatt en el juego final.** Los árboles, enemigos, gemas y armas los generé con código (scripts en `arte/herramientas/`).
+- **Organización:** `source/images/` solo debe tener lo que el juego usa (todo lo que está ahí se empaqueta en el juego). Los diseños descartados o guardados para después están en `arte/` (fuera de `source/`): `arte/enemigos/`, `arte/armas/`. Los dibujos de las armas miran hacia arriba y el juego los gira.
+- **Armas guardadas (diseñadas, no usadas todavía)** en `arte/armas/`: `maza` (ya definida como `MAZA` en `weapon_types.lua`, con dibujo en `source/images/`), `hacha`, `martillo`, `espada` (la primera, gruesa) y las espadas `espada_estoque`, `espada_katana`, `espada_cimitarra` (`espada_larga` es el arma inicial y `espada_mandoble` está definida como `MANDOBLE`). Para dejar una disponible: copiar el dibujo a `source/images/weapon_nombre.png`, agregar su entrada en `weapon_types.lua` (con `HITBOXES` a lo largo de su forma, `ROTATE`/`NO_CHAIN` si aplica) y ofrecerla en `upgrades.lua`. Las hitbox se revisan con `Config.DEBUG_HITBOXES = true`.
 
 ---
 
@@ -171,7 +174,7 @@ Sugerido por el profesor: que el mapa se mueva, estilo Vampire Survivors. Mundo 
 ### RF-12 — Fondo del mapa con tiles — hecho, mergeado a `develop`
 Pasto ralo, caminos de grava que serpentean, farolas al borde de los caminos, arboledas con dos tipos de árbol y enemigos con relleno blanco (Pasos 18 a 21, ver `map.lua`).
 
-### RF-13 — Gemas de XP y niveles (rama `feature/rf-13-xp-y-niveles`) — en curso
+### RF-13 — Gemas de XP y niveles (rama `feature/rf-13-xp-y-niveles`) — hecho, mergeado a `develop`
 - [x] **Paso 22.** Los enemigos sueltan una gema al morir (`gems.lua`, con pool).
 - [x] **Paso 23.** Las gemas se recogen y suman experiencia (`xp.lua`). Se probó un imán que las atraía (y que crecía con la manivela), pero se quitó: ahora solo se recogen al tocarlas.
 - [x] **Paso 24.** Barra de XP abajo a la derecha, nivel ("Nv. N") y aviso "Nivel N" al subir.
@@ -179,6 +182,18 @@ Pasto ralo, caminos de grava que serpentean, farolas al borde de los caminos, ar
 - [x] **Paso 26.** `upgrades.lua` y menú al subir de nivel (el juego se pausa; arriba/abajo y A para elegir 1 de 3 mejoras al azar). Se cambió el plan: en vez de un bono automático, el jugador elige. Mejoras: Vitalidad, Fuerza, Rapidez, Carga, Punteria (solo con pistola), Pistola (arma nueva, una sola vez), Iman (alcance de recogida) y Alcance (del arma que gira). El HUD muestra la vida como actual/máxima y aparece un aviso con la mejora elegida.
 - [x] Las gemas se reciclan (la más lejana) cuando el pool está lleno, para que el XP no se frene.
 - [ ] Pendiente: ajustar el balance jugando (XP por nivel, tamaño de cada mejora) y definir qué pasa con las armas (subirlas de nivel, más tipos).
+
+### RF-14 — Enemigos con tipos y dibujos (rama `feature/rf-14-enemigos-y-dificultad`) — en curso
+- [x] Dibujos de 4 enemigos con 2 cuadros de animación (fantasma, murciélago, oso, araña). Se descartaron golem, slime y escarabajo (quedan en `arte/enemigos/`); el script que los genera está en `arte/herramientas/generar_enemigos.py`. El oso no convence del todo (se ve más simpático que amenazante); se puede retocar.
+- [x] `enemy_types.lua`: cada enemigo tiene su tipo (tamaño, velocidad, vida, daño); `combat.lua` usa el tamaño y daño de cada uno.
+- [x] Los enemigos se dibujan con sprites animados.
+- [x] Murciélago (rápido, desde la ronda 2), araña (zigzag, desde la 3) y oso (tanque, desde la 4) aparecen según la ronda.
+- [x] Dificultad creciente (`difficulty.lua`): el intervalo entre enemigos baja 0,07 s por ronda (mínimo 0,3 s) y su vida sube 12% por ronda. El pool de enemigos subió de 40 a 70. La pistola se bajó de cadencia (1,2 s sin energía a 0,4 s con energía llena) porque se sentía demasiado fuerte.
+- [x] Jefe cada 5 rondas (`Difficulty.BOSS_EVERY`): un murciélago gigante (vida 40 más el aumento por ronda, lento, 2 de daño, suelta 12 gemas) con barra de vida encima y aviso "Ronda N - JEFE!". No está en `EnemyTypes.LIST`, se llama con `Enemy.spawnBoss()`. Se dibuja siempre encima de los demás enemigos. **Si no lo matas dentro de la ronda, sigue vivo** en la siguiente (al cambiar de ronda solo se borran los enemigos normales, `Enemy.clearNormals()`), y no aparece otro jefe mientras el anterior siga vivo. Esto funciona igual si más adelante se quitan las rondas.
+- [x] `Difficulty.level()`: toda la dificultad (ritmo de aparición, vida, jefe, qué enemigos salen) depende de esta función, que hoy devuelve el número de ronda. Si se decide un estilo Vampire Survivors (sin rondas ni tienda), basta con que devuelva otra cosa (por ejemplo los minutos jugados). Decisión de fondo aún abierta: rondas con tienda (Brotato) o tiempo continuo sin tienda (Vampire Survivors).
+- [x] `Config.DEBUG_HITBOXES`: poner en `true` dibuja los círculos de colisión, para revisar que los golpes coinciden con lo que se ve.
+- [x] Armas con dibujo propio: el arma inicial es una espada larga (sin cadena, zona de daño en 3 círculos a lo largo de la hoja); maza con cadena y mandoble listos pero sin usar. Ver "Arte y créditos".
+- [ ] Pendiente: dibujo del personaje (hoy es un círculo negro), retocar el oso, balance del jefe y de las armas.
 
 ### Hoja de ruta (la práctica termina el 20 de diciembre; reunión con el profesor cada 2 semanas)
 Cada iteración = una rama y un PR, con commits atómicos por paso. El profesor pidió elegir bien qué funcionalidad mostrar en cada reunión.
