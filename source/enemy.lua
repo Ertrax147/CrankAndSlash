@@ -83,13 +83,18 @@ function Enemy.update(dt)
     end
 end
 
+-- Dibuja cada enemigo como un circulo con contorno negro y relleno blanco. El relleno es
+-- necesario porque el fondo (pasto, caminos, arboles) tiene muchos puntos negros y un circulo
+-- hueco se perdia entre ellos.
 function Enemy.draw()
-    gfx.setColor(gfx.kColorBlack)
     local items = Enemy.pool.items
     for i = 1, #items do
         local e = items[i]
         if e.active then
             local screenX, screenY = Camera.toScreen(e.x, e.y)
+            gfx.setColor(gfx.kColorWhite)
+            gfx.fillCircleAtPoint(screenX, screenY, Enemy.RADIUS)
+            gfx.setColor(gfx.kColorBlack)
             gfx.drawCircleAtPoint(screenX, screenY, Enemy.RADIUS)
         end
     end
