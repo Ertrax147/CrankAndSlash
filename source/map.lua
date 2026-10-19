@@ -1,14 +1,18 @@
--- Fondo del mapa: prueba con un tile de pasto (baldosa de 16x16) en vez de la grilla de puntos.
--- EXPERIMENTAL - rama experimento/tileset-mapa, no es parte del plan todavia.
+-- Fondo del mapa: un tile de pasto repetido por todo el mundo infinito.
+-- Arte: tileset de chuckiecatt (itch.io), convertido a 1-bit.
 local gfx = playdate.graphics
 
 Map = {
-    TILE_SIZE = 16, -- tamano del tile, en pixeles de mundo
+    TILE_PIXELS = 16, -- tamano del dibujo original del tile
+    SCALE = 2,        -- cuantas veces se agranda el tile para que se vea mas grande
 }
+Map.TILE_SIZE = Map.TILE_PIXELS * Map.SCALE -- tamano del tile en pixeles de mundo
 
-local grassTile = gfx.image.new("images/grass_tile")
+-- Se agranda una sola vez al cargar (no en cada frame) para no gastar rendimiento
+local grassTile = gfx.image.new("images/grass_tile"):scaledImage(Map.SCALE)
 
 -- Dibuja el tile repetido, solo el area que cae dentro de lo que se ve en pantalla.
+-- Las posiciones se alinean a la grilla del mundo, para que no "salten" al moverse la camara.
 function Map.draw()
     local size = Map.TILE_SIZE
 
