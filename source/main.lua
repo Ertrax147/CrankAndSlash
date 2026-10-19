@@ -5,6 +5,7 @@ import "pool"
 import "collision"
 import "energy"
 import "round"
+import "difficulty"
 import "xp"
 import "stats"
 import "upgrades"
@@ -13,6 +14,7 @@ import "camera"
 import "map"
 import "weapon_types"
 import "weapon"
+import "enemy_types"
 import "enemy"
 import "gems"
 import "projectile"
@@ -77,6 +79,38 @@ local function drawHud()
     gfx.fillRect(XP_BAR_X, XP_BAR_Y, XP_BAR_W * Xp.ratio(), XP_BAR_H)
 end
 
+-- Depuracion (Config.DEBUG_HITBOXES): dibuja los circulos que usa el juego para las colisiones,
+-- para comprobar que el dano y los golpes coinciden con lo que se ve en pantalla.
+local function drawHitboxes()
+    gfx.setColor(gfx.kColorBlack)
+    local playerX, playerY = Camera.toScreen(Player.x, Player.y)
+    gfx.drawCircleAtPoint(playerX, playerY, Player.RADIUS)
+    local enemies = Enemy.pool.items
+    for i = 1, #enemies do
+        local e = enemies[i]
+        if e.active then
+            local x, y = Camera.toScreen(e.x, e.y)
+            gfx.drawCircleAtPoint(x, y, e.def.RADIUS)
+        end
+    end
+    for i = 1, #Weapon.list do
+        local w = Weapon.list[i]
+        for k = 1, #w.hits do
+            local hit = w.hits[k]
+            local x, y = Camera.toScreen(hit.x, hit.y)
+            gfx.drawCircleAtPoint(x, y, hit.r)
+        end
+    end
+    local projectiles = Projectile.pool.items
+    for i = 1, #projectiles do
+        local p = projectiles[i]
+        if p.active then
+            local x, y = Camera.toScreen(p.x, p.y)
+            gfx.drawCircleAtPoint(x, y, Projectile.RADIUS)
+        end
+    end
+end
+
 -- Abre el menu de mejoras: elige las opciones al azar y gasta uno de los niveles pendientes
 local function openLevelMenu()
     choices = Upgrades.pickChoices()
@@ -136,8 +170,9 @@ function playdate.update()
     elseif not gameOver then
         Energy.update(dt)
         if Round.update(dt) then
-            Enemy.reset()
+            Enemy.clearNormals() -- el jefe, si sigue vivo, no desaparece
             announceTimer = ANNOUNCE_DURATION
+            if Difficulty.isBossRound() and not Enemy.bossAlive() then Enemy.spawnBoss() end
         end
         if announceTimer > 0 then
             announceTimer = announceTimer - dt
@@ -151,7 +186,7 @@ function playdate.update()
         Ranged.update(dt)
 
         spawnTimer = spawnTimer + dt
-        if spawnTimer >= Config.SPAWN_INTERVAL then
+        if spawnTimer >= Difficulty.spawnInterval() then
             spawnTimer = 0
             Enemy.spawn()
         end
@@ -179,9 +214,11 @@ function playdate.update()
     Weapon.draw()
     Projectile.draw()
     Player.draw()
+    if Config.DEBUG_HITBOXES then drawHitboxes() end
     drawHud()
     if announceTimer > 0 then
         local announceText = "Ronda " .. Round.number
+        if Difficulty.isBossRound() then announceText = announceText .. " - JEFE!" end
         local textWidth = gfx.getTextSize(announceText)
         gfx.drawText(announceText, (Config.SCREEN_W - textWidth) / 2, 100)
     end

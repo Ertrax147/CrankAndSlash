@@ -1,7 +1,7 @@
 -- Pistola: dispara sola cada cierto tiempo hacia el enemigo mas cercano.
 Ranged = {
-    BASE_COOLDOWN = 1.0, -- segundos entre disparos sin energia
-    MIN_COOLDOWN = 0.2,  -- segundos entre disparos con energia llena
+    BASE_COOLDOWN = 1.2, -- segundos entre disparos sin energia
+    MIN_COOLDOWN = 0.4,  -- segundos entre disparos con energia llena (antes 0.2, era demasiado fuerte)
 }
 
 -- La pistola empieza apagada: el jugador la consigue como una mejora al subir de nivel
