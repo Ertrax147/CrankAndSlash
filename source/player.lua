@@ -11,7 +11,7 @@ Player = {
 function Player.reset()
     Player.x = Config.SCREEN_W / 2
     Player.y = Config.SCREEN_H / 2
-    Player.hp = Player.MAX_HP
+    Player.hp = Stats.maxHp()
     Player.invuln = 0
 end
 
@@ -28,8 +28,9 @@ function Player.update(dt)
         dy = dy * 0.7071
     end
 
-    Player.x = Player.x + dx * Player.SPEED * dt
-    Player.y = Player.y + dy * Player.SPEED * dt
+    local speed = Player.SPEED * Stats.speedMult
+    Player.x = Player.x + dx * speed * dt
+    Player.y = Player.y + dy * speed * dt
 
     if Player.invuln > 0 then
         Player.invuln = Player.invuln - dt

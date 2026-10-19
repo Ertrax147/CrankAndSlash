@@ -33,8 +33,9 @@ function Weapon.update(dt)
         local speed = def.BASE_SPEED + (def.MAX_SPEED - def.BASE_SPEED) * Energy.ratio()
         w.angle = (w.angle + speed * dt) % 360
         local rad = math.rad(w.angle)
-        w.x = Player.x + def.ORBIT_RADIUS * math.cos(rad)
-        w.y = Player.y + def.ORBIT_RADIUS * math.sin(rad)
+        local orbit = def.ORBIT_RADIUS * Stats.reachMult -- la mejora "Alcance" aleja el arma
+        w.x = Player.x + orbit * math.cos(rad)
+        w.y = Player.y + orbit * math.sin(rad)
     end
 end
 
