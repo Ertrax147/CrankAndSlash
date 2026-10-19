@@ -1,27 +1,26 @@
--- Fondo del mapa: una grilla de puntos, para notar que la camara se mueve.
+-- Fondo del mapa: prueba con un tile de pasto (baldosa de 16x16) en vez de la grilla de puntos.
+-- EXPERIMENTAL - rama experimento/tileset-mapa, no es parte del plan todavia.
 local gfx = playdate.graphics
 
 Map = {
-    GRID_SPACING = 40, -- distancia en pixeles entre puntos, en coordenadas de mundo
-    DOT_RADIUS = 1,
+    TILE_SIZE = 16, -- tamano del tile, en pixeles de mundo
 }
 
--- Dibuja solo los puntos de la grilla que caen dentro de lo que se ve en pantalla.
-function Map.draw()
-    gfx.setColor(gfx.kColorBlack)
-    local spacing = Map.GRID_SPACING
+local grassTile = gfx.image.new("images/grass_tile")
 
-    -- primer punto visible, alineado a la grilla del mundo (no a la pantalla),
-    -- para que los puntos no "salten" al moverse la camara
-    local startWorldX = math.floor((Camera.x - Config.SCREEN_W / 2) / spacing) * spacing
-    local startWorldY = math.floor((Camera.y - Config.SCREEN_H / 2) / spacing) * spacing
+-- Dibuja el tile repetido, solo el area que cae dentro de lo que se ve en pantalla.
+function Map.draw()
+    local size = Map.TILE_SIZE
+
+    local startWorldX = math.floor((Camera.x - Config.SCREEN_W / 2) / size) * size
+    local startWorldY = math.floor((Camera.y - Config.SCREEN_H / 2) / size) * size
     local endWorldX = Camera.x + Config.SCREEN_W / 2
     local endWorldY = Camera.y + Config.SCREEN_H / 2
 
-    for worldX = startWorldX, endWorldX, spacing do
-        for worldY = startWorldY, endWorldY, spacing do
+    for worldX = startWorldX, endWorldX, size do
+        for worldY = startWorldY, endWorldY, size do
             local screenX, screenY = Camera.toScreen(worldX, worldY)
-            gfx.fillCircleAtPoint(screenX, screenY, Map.DOT_RADIUS)
+            grassTile:draw(screenX, screenY)
         end
     end
 end
