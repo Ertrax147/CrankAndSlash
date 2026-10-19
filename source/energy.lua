@@ -12,7 +12,7 @@ end
 
 function Energy.update(dt)
     local change = playdate.getCrankChange() -- grados girados desde el frame anterior
-    Energy.value = Energy.value + math.abs(change) * Energy.CHARGE_PER_DEGREE
+    Energy.value = Energy.value + math.abs(change) * Energy.CHARGE_PER_DEGREE * Stats.energyMult
     Energy.value = Energy.value - Energy.DECAY_PER_SECOND * dt
     if Energy.value < 0 then Energy.value = 0 end
     if Energy.value > Energy.MAX then Energy.value = Energy.MAX end

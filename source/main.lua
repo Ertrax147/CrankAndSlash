@@ -6,6 +6,7 @@ import "collision"
 import "energy"
 import "round"
 import "xp"
+import "stats"
 import "player"
 import "camera"
 import "map"
@@ -37,6 +38,7 @@ local function resetGame()
     Energy.reset()
     Round.reset()
     Xp.reset()
+    Stats.reset()
     Player.reset()
     Camera.reset()
     Weapon.reset()

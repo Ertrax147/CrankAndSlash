@@ -19,6 +19,6 @@ function Ranged.update(dt)
     if target then
         Projectile.spawn(Player.x, Player.y, target.x, target.y)
         -- igual que Weapon.update: mas energia, menos espera entre disparos
-        Ranged.cooldown = Ranged.BASE_COOLDOWN - (Ranged.BASE_COOLDOWN - Ranged.MIN_COOLDOWN) * Energy.ratio()
+        Ranged.cooldown = (Ranged.BASE_COOLDOWN - (Ranged.BASE_COOLDOWN - Ranged.MIN_COOLDOWN) * Energy.ratio()) / Stats.fireRateMult
     end
 end

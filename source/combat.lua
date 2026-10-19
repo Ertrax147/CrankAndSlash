@@ -22,7 +22,7 @@ function Combat.update()
                 for j = 1, #Weapon.list do
                     local w = Weapon.list[j]
                     if Collision.circles(w.x, w.y, w.def.RADIUS, e.x, e.y, Enemy.RADIUS) then
-                        e.hp = e.hp - w.def.DAMAGE
+                        e.hp = e.hp - w.def.DAMAGE * Stats.damageMult
                         e.hitTimer = w.def.HIT_COOLDOWN
                         if e.hp <= 0 then
                             killEnemy(e)
@@ -37,7 +37,7 @@ function Combat.update()
                 for j = 1, #projectiles do
                     local p = projectiles[j]
                     if p.active and Collision.circles(p.x, p.y, Projectile.RADIUS, e.x, e.y, Enemy.RADIUS) then
-                        e.hp = e.hp - Projectile.DAMAGE
+                        e.hp = e.hp - Projectile.DAMAGE * Stats.damageMult
                         Projectile.pool:release(p)
                         if e.hp <= 0 then
                             killEnemy(e)
