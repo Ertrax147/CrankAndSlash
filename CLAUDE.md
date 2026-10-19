@@ -127,7 +127,7 @@ Ya implementado: rondas, tipos de arma, pistola, desbloqueo de arma en la ronda 
 - **Ya definido en el GDD v0.4 (docs en Google Docs / `.docx`):** XP y subida de nivel automática (sección 5), 3 tipos de enemigo (básico, rápido, tanque), 4-5 armas (espada, maza, lanza, pistola, escopeta, lanzallamas), tienda entre rondas con monedas. El profesor ya sabe que veremos experiencia y UI.
 - **Decisiones recientes:** mundo infinito (mezcla de Brotato, con rondas y tienda, y Vampire Survivors, con mundo que se desplaza y recolección de gemas). Idea aprobada: **jefe cada 5 rondas**.
 - **Por confirmar:** duración de la partida. Propuesta: 10 rondas, jefe en la 5 y la 10, pantalla de victoria al ganar la 10 (como Brotato). Vampire Survivors también tiene un límite (30 min).
-- **Ideas aún sin decidir:** la manivela como imán de gemas (a más energía, más alcance) y estela en las armas con la energía al máximo; podrían ser objetos de la tienda o comportamiento base.
+- **Ideas aún sin decidir:** estela en las armas con la energía al máximo; podría ser comportamiento base. La manivela como imán de gemas se probó y se descartó (por ahora las gemas solo se recogen al tocarlas); podría volver como objeto de la tienda.
 
 ---
 
@@ -162,6 +162,15 @@ Sugerido por el profesor: que el mapa se mueva, estilo Vampire Survivors. Mundo 
 - [x] **Paso 15.** Quitar el límite de pantalla del jugador; `Player.draw()` usa la cámara.
 - [x] **Paso 16.** `weapon.lua` y `projectile.lua` dibujan con la cámara (y los proyectiles se borran al salir de lo visible).
 - [x] **Paso 17.** `enemy.lua` dibuja con la cámara y genera enemigos alrededor de la cámara.
+
+### RF-12 — Fondo del mapa con tiles — hecho, mergeado a `develop`
+Pasto ralo, caminos de grava que serpentean, farolas al borde de los caminos, arboledas con dos tipos de árbol y enemigos con relleno blanco (Pasos 18 a 21, ver `map.lua`).
+
+### RF-13 — Gemas de XP y niveles (rama `feature/rf-13-xp-y-niveles`) — en curso
+- [x] **Paso 22.** Los enemigos sueltan una gema al morir (`gems.lua`, con pool).
+- [x] **Paso 23.** Las gemas se recogen y suman experiencia (`xp.lua`). Se probó un imán que las atraía (y que crecía con la manivela), pero se quitó: ahora solo se recogen al tocarlas.
+- [x] **Paso 24.** Barra de XP abajo a la derecha, nivel ("Nv. N") y aviso "Nivel N" al subir.
+- [ ] **Paso 26 (pendiente, por definir).** `stats.lua` y bono automático al subir de nivel. Falta decidir qué estadísticas suben y cuánto (idea inicial: rotar vida máxima +1, daño +10%, velocidad +8%, energía +10%).
 
 ### Hoja de ruta (la práctica termina el 20 de diciembre; reunión con el profesor cada 2 semanas)
 Cada iteración = una rama y un PR, con commits atómicos por paso. El profesor pidió elegir bien qué funcionalidad mostrar en cada reunión.

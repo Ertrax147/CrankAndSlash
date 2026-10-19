@@ -28,6 +28,18 @@ function Gems.reset()
     Gems.pool:releaseAll()
 end
 
+-- Cada gema que toca al jugador se recoge: da experiencia y desaparece.
+function Gems.update()
+    local items = Gems.pool.items
+    for i = 1, #items do
+        local g = items[i]
+        if g.active and Collision.circles(Player.x, Player.y, Player.RADIUS, g.x, g.y, Gems.HALF_SIZE) then
+            Xp.add(g.value)
+            Gems.pool:release(g)
+        end
+    end
+end
+
 -- Dibuja un rombo de "radio" s centrado en (x, y)
 local function fillDiamond(x, y, s)
     gfx.fillPolygon(x, y - s, x + s, y, x, y + s, x - s, y)
