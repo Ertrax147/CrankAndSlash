@@ -7,10 +7,7 @@ Player = {
     MAX_HP = 5,
     INVULN_TIME = 1.0, -- segundos sin recibir dano despues de un golpe
     FRAME_TIME = 0.15, -- segundos que dura cada cuadro de la caminata
-    -- manivela de la caja (se dibuja por codigo; el pivote esta en el borde exterior de la caja,
-    -- que queda a la espalda del personaje)
-    CRANK_PIVOT_X = 2,       -- posicion del pivote dentro del dibujo (pixeles desde su esquina)
-    CRANK_PIVOT_Y = 19,
+    -- manivela de la caja (se dibuja por codigo, solo si el personaje la tiene: ver data/characters.lua)
     CRANK_LENGTH = 7,
     CRANK_MAX_SPEED = 6,     -- radianes por segundo con la energia llena (mas rapido se ve como temblor a 30 fps)
     -- rayos alrededor del personaje: cuantos y de que largo segun la energia
@@ -23,8 +20,17 @@ Player = {
     BOLT_TICK = 0.1,         -- cada cuantos segundos cambia la forma de los rayos
 }
 
--- Dibujo del personaje: 2 cuadros de caminata (miran a la derecha; a la izquierda se voltean)
-local frames = { gfx.image.new("images/player/personaje_1"), gfx.image.new("images/player/personaje_2") }
+-- Personaje elegido (ver data/characters.lua) y sus 2 cuadros de caminata
+-- (miran a la derecha; a la izquierda se voltean)
+local frames
+
+-- Cambia el personaje con el que se juega: carga sus dos dibujos
+function Player.setCharacter(character)
+    Player.character = character
+    frames = { gfx.image.new(character.SPRITE .. "_1"), gfx.image.new(character.SPRITE .. "_2") }
+end
+
+Player.setCharacter(Characters[Config.DEBUG_CHARACTER])
 
 function Player.reset()
     Player.x = Config.SCREEN_W / 2
@@ -141,11 +147,14 @@ function Player.draw()
     local w, h = image:getSize()
     local side = Player.facingLeft and -1 or 1 -- al mirar a la izquierda todo se refleja
     -- el pivote baja 1 px en el segundo cuadro, igual que el cuerpo
-    local pivotX = screenX + side * (Player.CRANK_PIVOT_X - w / 2)
-    local pivotY = screenY + (Player.CRANK_PIVOT_Y + frame - 1) - h / 2
+    local pivotX, pivotY
+    if Player.character.CRANK_PIVOT_X then
+        pivotX = screenX + side * (Player.character.CRANK_PIVOT_X - w / 2)
+        pivotY = screenY + (Player.character.CRANK_PIVOT_Y + frame - 1) - h / 2
+    end
 
-    drawBolts(screenX, screenY)
-    drawCrank(pivotX, pivotY, side)
+    if Player.character.BOLTS then drawBolts(screenX, screenY) end
+    if Player.character.CRANK_PIVOT_X then drawCrank(pivotX, pivotY, side) end
     local flip = Player.facingLeft and gfx.kImageFlippedX or gfx.kImageUnflipped
     image:draw(screenX - w / 2, screenY - h / 2, flip)
 end

@@ -106,6 +106,10 @@ def run(seed, debug_hitboxes):
         lua.eval(f"Harness.setInput({str(up).lower()}, {str(down).lower()}, {str(left).lower()}, "
                  f"{str(right).lower()}, {str(press_a).lower()}, {crank})")
 
+        # cambia de personaje jugable cada tanto, para probar los dibujos y datos de todos
+        if frame % 500 == 0:
+            lua.execute(f"Player.setCharacter(Characters.LIST[({frame // 500} + {seed}) % #Characters.LIST + 1])")
+
         # empujones para llegar rapido a situaciones raras
         if frame % 150 == 0:
             lua.execute("if Xp and not LevelMenu.isOpen() then Xp.add(Xp.needed() * 2) end")  # sube 2 niveles

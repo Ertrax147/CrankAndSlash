@@ -1,9 +1,7 @@
-# Genera los dibujos del personaje (3 disenos, 2 cuadros de caminata cada uno).
+# Genera los dibujos de todos los personajes jugables (2 cuadros de caminata cada uno).
 # Uso, desde la raiz del repositorio:  python arte/herramientas/generar_personaje.py
-# Necesita Pillow (pip install Pillow). Guarda todos en arte/personaje/ y copia el elegido
-# (el guerrero) a source/images/player/ como personaje_1.png y personaje_2.png.
+# Necesita Pillow (pip install Pillow). Guarda cada personaje en source/images/player/ como nombre_1.png y nombre_2.png.
 import os
-import shutil
 from PIL import Image, ImageDraw, ImageFilter, ImageOps
 B=(0,0,0,255); Wh=(255,255,255,255); T=(0,0,0,0)
 W,H=19,23
@@ -67,8 +65,38 @@ def warrior(f):
     return s
 
 # ---------- cientifico con caja-generador (sin manivela: la manivela y los rayos los dibuja el codigo en player.lua)
+# Las 4 cabezas se dibujan en el mismo lugar (cuerpo y caja son iguales), solo cambia la cara.
 SW, SH = 26, 29
-def scientist(f):
+def head_wild(d, b):      # cabeza 1: pelo parado y lentes negros
+    for x, hh in ((4,4),(7,6),(10,4),(13,6)):
+        d.polygon([(x-2,6+b),(x-1,5+b-hh+1),(x+1,6+b)], fill=B)
+    blob(d, [('e',(2,5+b,16,18+b))])
+    d.rectangle((3,10+b,8,13+b), fill=B); d.rectangle((10,10+b,15,13+b), fill=B); d.rectangle((8,11+b,10,11+b), fill=B)
+    for x in (4,5,11,12): d.point((x,10+b), fill=Wh)
+    d.line([(6,15+b),(12,15+b)], fill=B); d.point((5,14+b), fill=B); d.point((13,14+b), fill=B)
+def head_round(d, b):     # cabeza 2: mas chica, lentes redondos, pelo desordenado
+    for x, hh in ((5,3),(8,5),(11,3),(14,4)):
+        d.polygon([(x-2,8+b),(x-1,7+b-hh+1),(x+1,8+b)], fill=B)
+    blob(d, [('e',(3,7+b,15,18+b))])
+    d.rectangle((1,10+b,2,12+b), fill=B); d.rectangle((16,10+b,17,12+b), fill=B)
+    d.ellipse((4,10+b,8,14+b), outline=B, fill=Wh); d.ellipse((10,10+b,14,14+b), outline=B, fill=Wh)
+    d.point((6,12+b), fill=B); d.point((12,12+b), fill=B); d.line([(8,12+b),(10,12+b)], fill=B)
+    d.line([(7,16+b),(11,16+b)], fill=B)
+def head_cloud(d, b):     # cabeza 3: pelo en nube, ojos grandes y sonrisa abierta
+    for box in ((2,2+b,8,9+b),(6,0+b,12,7+b),(10,2+b,16,9+b)): d.ellipse(box, fill=B)
+    blob(d, [('e',(2,6+b,16,18+b))])
+    d.ellipse((4,9+b,8,13+b), fill=Wh, outline=B); d.ellipse((10,9+b,14,13+b), fill=Wh, outline=B)
+    d.rectangle((6,11+b,7,12+b), fill=B); d.rectangle((12,11+b,13,12+b), fill=B)
+    d.polygon([(6,15+b),(12,15+b),(11,17+b),(7,17+b)], fill=B)
+def head_professor(d, b): # cabeza 4: calvo con pelo blanco a los lados, lentes redondos y bigote
+    blob(d, [('e',(0,7+b,6,15+b)),('e',(12,7+b,18,15+b))])
+    d.line([(8,5+b),(8,6+b)], fill=B); d.line([(10,5+b),(10,6+b)], fill=B)
+    blob(d, [('e',(3,5+b,15,18+b))])
+    d.ellipse((4,9+b,8,13+b), outline=B, fill=Wh); d.ellipse((10,9+b,14,13+b), outline=B, fill=Wh)
+    d.point((6,11+b), fill=B); d.point((12,11+b), fill=B); d.line([(8,11+b),(10,11+b)], fill=B)
+    d.rectangle((6,15+b,12,16+b), fill=B)
+
+def scientist(f, head):
     s = Image.new('RGBA', (SW, SH), T); d = ImageDraw.Draw(s); b = f
     # piernas (se alternan entre cuadros)
     if f == 0: d.rectangle((4,25,7,28), fill=B); d.rectangle((10,25,13,27), fill=B)
@@ -83,26 +111,23 @@ def scientist(f):
     blob(d, [('r',(3,17+b,15,25))])
     d.line([(9,18+b),(9,24)], fill=B); d.point((6,21+b), fill=B); d.point((12,21+b), fill=B)
     d.rectangle((1,18+b,2,22+b), fill=B)
-    # pelo parado y cabeza grande
-    for x, hh in ((4,4),(7,6),(10,4),(13,6)):
-        d.polygon([(x-2,6+b),(x-1,5+b-hh+1),(x+1,6+b)], fill=B)
-    blob(d, [('e',(2,5+b,16,18+b))])
-    # lentes gruesos con brillo y sonrisa
-    d.rectangle((3,10+b,8,13+b), fill=B); d.rectangle((10,10+b,15,13+b), fill=B); d.rectangle((8,11+b,10,11+b), fill=B)
-    for x in (4,5,11,12): d.point((x,10+b), fill=Wh)
-    d.line([(6,15+b),(12,15+b)], fill=B); d.point((5,14+b), fill=B); d.point((13,14+b), fill=B)
+    head(d, b)
     # se dibuja con la caja a la derecha y se refleja: el personaje mira a la derecha y la caja
     # queda a su espalda (a la izquierda). Al ir a la izquierda el juego lo voltea.
     return ImageOps.mirror(s)
 
-ELEGIDO = '4_cientifico'
-DESIGNS = [('1_cientifico_armadura', sci_armor), ('2_cientifico_simple', sci_simple), ('3_guerrero', warrior),
-           ('4_cientifico', scientist)]
-os.makedirs('arte/personaje', exist_ok=True)
+# Todos los personajes jugables (el nombre es el de los archivos en source/images/player/).
+# Los datos de cada uno (manivela, rayos) estan en source/data/characters.lua.
+DESIGNS = [
+    ('guerrero', warrior),
+    ('cientifico_armadura', sci_armor),
+    ('cientifico_simple', sci_simple),
+    ('cientifico', lambda f: scientist(f, head_wild)),
+    ('cientifico_redondo', lambda f: scientist(f, head_round)),
+    ('cientifico_nube', lambda f: scientist(f, head_cloud)),
+    ('cientifico_profesor', lambda f: scientist(f, head_professor)),
+]
 os.makedirs('source/images/player', exist_ok=True)
 for name, fn in DESIGNS:
     for f in (0, 1):
-        path = f'arte/personaje/{name}_{f + 1}.png'
-        halo(pad(fn(f))).save(path)
-        if name == ELEGIDO:
-            shutil.copy(path, f'source/images/player/personaje_{f + 1}.png')
+        halo(pad(fn(f))).save(f'source/images/player/{name}_{f + 1}.png')
