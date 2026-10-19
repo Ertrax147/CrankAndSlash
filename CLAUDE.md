@@ -2,7 +2,7 @@
 
 Juego para la consola **Playdate**, escrito en **Lua** con el SDK nativo. Es el proyecto de la Práctica Profesional 1 de Cristopher (Ingeniería Civil en Informática, UFRO). Género: arena survival / roguelite de acción, inspirado en Brotato y Vampire Survivors. Arte 1-bit monocromático.
 
-Repositorio: github.com/Ertrax147/CrankAndSlash. Para compilar y probar: `pdc source CrankAndSlash.pdx` y abrir el `.pdx` en el Playdate Simulator. La manivela se simula en el panel de la parte inferior del simulador. No hay tests automáticos: cada paso se prueba jugando en el simulador.
+Repositorio: github.com/Ertrax147/CrankAndSlash. Para compilar y probar: `pdc source CrankAndSlash.pdx` y abrir el `.pdx` en el Playdate Simulator. La manivela se simula en el panel de la parte inferior del simulador. Además de jugar en el simulador, hay una prueba automática que ejecuta el juego sin pantalla: `python herramientas/prueba_sin_simulador.py` (necesita `pip install lupa`). Juega miles de cuadros con teclas al azar, fuerza niveles, rondas y jefes, y avisa de errores de ejecución o imágenes que faltan, que el compilador no detecta. Conviene correrla después de cada cambio de código (no reemplaza probar jugando: no puede juzgar cómo se ve o se siente).
 
 ---
 
@@ -76,7 +76,19 @@ Reglas para ti (Claude Code):
 
 ## Arquitectura
 
-Todo el código está en `source/`. Cada archivo tiene una sola responsabilidad y se carga con `import` desde `main.lua`. Los módulos son **tablas globales** (`Config`, `Pool`, `Collision`, `Energy`, `Round`, `Player`, `Camera`, `Map`, `WeaponTypes`, `Weapon`, `Enemy`, `Projectile`, `Ranged`, `Combat`). Las constantes van en mayúsculas al inicio del módulo, sin números sueltos en el código.
+Todo el código está en `source/`, organizado en carpetas por responsabilidad. Cada archivo tiene una sola responsabilidad y se carga con `import "carpeta/archivo"` desde `main.lua`. Los módulos son **tablas globales** (`Config`, `Pool`, `Collision`, `Energy`, `Round`, `Player`, `Camera`, `Map`, `WeaponTypes`, `Weapon`, `Enemy`, `Projectile`, `Ranged`, `Combat`, etc.). Las constantes van en mayúsculas al inicio del módulo, sin números sueltos en el código.
+
+**Carpetas de `source/`:**
+- `core/`: lo básico que usa todo el juego y no depende de nada del juego: `config`, `pool`, `collision`.
+- `world/`: el mundo y la cámara: `camera`, `map`.
+- `data/`: tablas con valores, sin lógica: `enemy_types`, `weapon_types`, `upgrades`. Para agregar un enemigo, arma o mejora se toca solo esta carpeta (más su dibujo en `images/`).
+- `entities/`: lo que existe y se mueve en el juego: `player`, `enemy`, `weapon`, `projectile`, `gems`.
+- `systems/`: las reglas del juego: `combat`, `difficulty`, `round`, `xp`, `stats`, `energy`, `ranged`, `spawner`.
+- `ui/`: lo que se dibuja encima del juego y no es parte del mundo: `hud` (vida, ronda, tiempo, energía, XP), `notices` (avisos de texto), `level_menu` (el menú de subida de nivel, con su propio estado) y `debug` (dibujo de hitbox).
+- `images/`: solo los dibujos que usa el juego, en subcarpetas: `map/` (pasto, camino, árboles, farola), `enemies/` (cada enemigo con sus cuadros `_1` y `_2`), `weapons/` y `gems/`. Todo lo que no se usa va en `arte/` (fuera de `source/`): `arte/enemigos`, `arte/armas`, `arte/gemas`, `arte/arboles` y `arte/originales` (los tilesets de chuckiecatt).
+- `main.lua` (en la raíz de `source/`) solo conecta todo: los `import`, `resetGame()` y el bucle `playdate.update()` que llama a cada sistema en orden (unas 100 líneas). **Pendiente:** la máquina de estados (menú de inicio, juego, game over) que pide el GDD; hoy el estado es la variable `gameOver` y `LevelMenu.isOpen()`.
+
+La tabla de abajo nombra los archivos sin carpeta.
 
 | Archivo | Responsabilidad |
 |---|---|
@@ -100,12 +112,17 @@ Todo el código está en `source/`. Cada archivo tiene una sola responsabilidad 
 | `stats.lua` | Modificadores de las estadísticas del jugador (vida extra, velocidad, daño, energía, cadencia, alcance de recogida y del arma); cada módulo los aplica a su valor base |
 | `upgrades.lua` | Lista de mejoras que se ofrecen al subir de nivel (`available` decide si una se ofrece) y `pickChoices()` |
 | `combat.lua` | Revisa colisiones arma-enemigo, proyectil-enemigo y enemigo-jugador y aplica el daño |
+| `spawner.lua` | Cada cuánto aparece un enemigo y qué pasa al empezar una ronda (borra enemigos normales y llama al jefe si toca) |
+| `hud.lua` | HUD fijo: vida actual/máxima, ronda, tiempo, barra de energía, nivel y barra de XP |
+| `notices.lua` | Avisos de texto temporales en el centro ("Ronda 5 - JEFE!", la mejora elegida) |
+| `level_menu.lua` | Menú de subida de nivel: estado propio, pausa el juego, elige con arriba/abajo y A |
+| `debug.lua` | `DebugDraw.hitboxes()`: dibuja los círculos de colisión si `Config.DEBUG_HITBOXES` es true |
 
 **Idea clave de la cámara:** toda la lógica (movimiento, colisiones, daño) trabaja en **coordenadas de mundo**; solo el dibujo convierte a pantalla con `Camera.toScreen`. Por eso `collision.lua` y `combat.lua` no dependen de la cámara. Cualquier cosa que necesite saber "si está dentro de la pantalla" (como borrar proyectiles) debe convertir con la cámara, no comparar contra `Config.SCREEN_W/H` directo.
 
 **Orden de actualización por frame** (importa, no lo cambies sin avisar): `Energy.update` → `Round.update` (si empieza ronda nueva: `Enemy.reset` y aviso) → `Player.update` → `Camera.update` → `Weapon.update` → `Ranged.update` → spawner → `Enemy.update` → `Projectile.update` → `Combat.update`. Dibujo: `Map` → `Enemy` → `Weapon` → `Projectile` → `Player` → HUD → aviso de ronda / game over.
 
-**Orden de `import` en `main.lua`:** `config`, `pool`, `collision`, `energy`, `round`, `player`, `camera`, `map`, `weapon_types`, `weapon`, `enemy`, `projectile`, `ranged`, `combat`. `pool` debe ir antes de `enemy` y `projectile` (crean su pool al cargarse) y `weapon_types` antes de `weapon`.
+**Orden de `import` en `main.lua`:** primero `core/config`, `core/pool` y `core/collision`; las tablas de `data/` antes de los módulos que las usan al cargarse (`weapon_types` antes de `weapon`, `enemy_types` antes de `enemy`); `pool` antes de `enemy`, `projectile` y `gems` (crean su pool al cargarse). El orden exacto está en `main.lua`.
 
 ### Convenciones
 - Estilo de Lua simple. El dibujo del juego se hace con `playdate.graphics` (círculos y líneas) y solo se importa `CoreLibs/graphics`. **Sí se pueden usar librerías** (las CoreLibs del SDK, como sprites, timers o animación, u otras externas) cuando aporten valor real. Antes de agregar una, propón la opción, explica qué gana y qué complica, y espera mi OK.

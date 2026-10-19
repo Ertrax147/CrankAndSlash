@@ -12,23 +12,23 @@
 EnemyTypes = {
     FANTASMA = {
         RADIUS = 7, SPEED = 40, HP = 3, DAMAGE = 1, MIN_ROUND = 1, WEIGHT = 100,
-        SPRITE = "images/enemy_fantasma", ANIM_TIME = 0.3,
+        SPRITE = "images/enemies/fantasma", ANIM_TIME = 0.3,
     },
     -- Rapido y fragil: aletea muy seguido
     MURCIELAGO = {
         RADIUS = 6, SPEED = 70, HP = 2, DAMAGE = 1, MIN_ROUND = 2, WEIGHT = 50,
-        SPRITE = "images/enemy_murcielago", ANIM_TIME = 0.12,
+        SPRITE = "images/enemies/murcielago", ANIM_TIME = 0.12,
     },
     -- Rapida y erratica: avanza en zigzag
     ARANA = {
         RADIUS = 6, SPEED = 55, HP = 2, DAMAGE = 1, MIN_ROUND = 3, WEIGHT = 35,
-        SPRITE = "images/enemy_arana", ANIM_TIME = 0.15,
+        SPRITE = "images/enemies/arana", ANIM_TIME = 0.15,
         WOBBLE = 1.0, WOBBLE_SPEED = 5,
     },
     -- Tanque: lento, muy resistente y hace el doble de dano
     OSO = {
         RADIUS = 11, SPEED = 22, HP = 10, DAMAGE = 2, MIN_ROUND = 4, WEIGHT = 18,
-        SPRITE = "images/enemy_oso", ANIM_TIME = 0.35,
+        SPRITE = "images/enemies/oso", ANIM_TIME = 0.35,
     },
 }
 
@@ -36,7 +36,7 @@ EnemyTypes = {
 -- Difficulty.BOSS_EVERY. GEMS es cuantas gemas suelta al morir (los demas sueltan 1).
 EnemyTypes.BOSS = {
     RADIUS = 14, SPEED = 38, HP = 40, DAMAGE = 2, MIN_ROUND = 1, WEIGHT = 0,
-    SPRITE = "images/enemy_jefe", ANIM_TIME = 0.15,
+    SPRITE = "images/enemies/jefe", ANIM_TIME = 0.15,
     GEMS = 12, BOSS = true,
 }
 

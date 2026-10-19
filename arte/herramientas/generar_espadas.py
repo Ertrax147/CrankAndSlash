@@ -66,7 +66,7 @@ def mandoble():         # grande y ancha
     return s
 
 designs=[("estoque",estoque),("larga",larga),("katana",katana),("cimitarra",cimitarra),("mandoble",mandoble)]
-grass = Image.open('source/images/grass_tile.png').convert('RGBA').resize((32,32),Image.NEAREST)
+grass = Image.open('source/images/map/grass_tile.png').convert('RGBA').resize((32,32),Image.NEAREST)
 cols=len(designs); W=cols*100; H=150
 bg=Image.new('RGBA',(W,H),Wh)
 for x in range(0,W,32):
