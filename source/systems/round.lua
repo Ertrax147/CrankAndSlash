@@ -3,10 +3,11 @@ Round = {
     TIME_LIMIT = 30, -- segundos que dura cada ronda
     timeLeft = 30,
     number = 1,
+    startNumber = 1, -- ronda con la que empieza cada partida (la pantalla de pruebas la puede cambiar)
 }
 
 function Round.reset()
-    Round.number = 1
+    Round.number = Round.startNumber
     Round.timeLeft = Round.TIME_LIMIT
 end
 

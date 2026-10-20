@@ -46,9 +46,11 @@ local function newWeapon(typeName, startAngle)
     return w
 end
 
+Weapon.startingType = "ESPADA_LARGA" -- arma con la que empieza cada partida (la pantalla de pruebas la puede cambiar)
+
 -- Reinicia la lista de armas del jugador a su estado inicial
 function Weapon.reset()
-    Weapon.list = { newWeapon("ESPADA_LARGA") }
+    Weapon.list = { newWeapon(Weapon.startingType) }
 end
 
 -- Actualiza la posicion de cada arma: gira alrededor del personaje,

@@ -58,7 +58,7 @@ end
 
 function Harness.setInput(up, down, left, right, a, crank)
     Input.held = { [1] = up, [2] = down, [4] = left, [8] = right }
-    Input.pressed = { [1] = up, [2] = down, [16] = a }
+    Input.pressed = { [1] = up, [2] = down, [4] = left, [8] = right, [16] = a }
     Input.crank = crank
 end
 
@@ -102,6 +102,9 @@ def run(seed, debug_hitboxes):
         game_over = lua.eval("Player.hp <= 0")
         # con el menu abierto o en game over se aprieta A de vez en cuando; en el menu tambien arriba/abajo
         press_a = (menu_open or game_over) and rnd.random() < 0.15
+        # los primeros cuadros estan en la pantalla de pruebas (izq/der cambian el personaje); A empieza
+        if frame == 20:
+            press_a = True
         crank = rnd.choice((0, 0, 5, 20, -15))
         lua.eval(f"Harness.setInput({str(up).lower()}, {str(down).lower()}, {str(left).lower()}, "
                  f"{str(right).lower()}, {str(press_a).lower()}, {crank})")

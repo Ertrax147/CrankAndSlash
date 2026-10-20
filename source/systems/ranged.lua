@@ -6,9 +6,11 @@ Ranged = {
 
 -- La pistola empieza apagada: el jugador la consigue como una mejora al subir de nivel
 -- (Upgrades), que enciende Ranged.unlocked.
+Ranged.startUnlocked = false -- true: la partida empieza con la pistola (la pantalla de pruebas lo puede cambiar)
+
 function Ranged.reset()
     Ranged.cooldown = 0
-    Ranged.unlocked = false
+    Ranged.unlocked = Ranged.startUnlocked
 end
 
 function Ranged.update(dt)

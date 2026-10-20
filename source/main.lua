@@ -27,10 +27,13 @@ import "ui/hud"
 import "ui/debug"
 import "ui/notices"
 import "ui/level_menu"
+import "ui/test_menu"
 
 local gfx = playdate.graphics
 
 local gameOver = false
+-- Con que pantalla estamos: la de pruebas (al abrir, si Config.DEBUG_MENU) o el juego
+local screen = Config.DEBUG_MENU and "test_menu" or "game"
 
 -- Deja el juego como al empezar (se llama al arrancar y al reiniciar despues de morir)
 local function resetGame()
@@ -52,9 +55,20 @@ local function resetGame()
 end
 
 resetGame()
+TestMenu.reset()
 
 function playdate.update()
     local dt = Config.DT
+
+    if screen == "test_menu" then
+        if TestMenu.update() then
+            TestMenu.apply() -- aplica lo elegido y empieza la partida desde cero
+            resetGame()
+            screen = "game"
+        end
+        TestMenu.draw()
+        return
+    end
 
     if LevelMenu.isOpen() then
         LevelMenu.update() -- con el menu abierto el juego esta en pausa
