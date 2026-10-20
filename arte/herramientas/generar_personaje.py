@@ -96,7 +96,7 @@ def head_professor(d, b): # cabeza 4: calvo con pelo blanco a los lados, lentes 
     d.point((6,11+b), fill=B); d.point((12,11+b), fill=B); d.line([(8,11+b),(10,11+b)], fill=B)
     d.rectangle((6,15+b,12,16+b), fill=B)
 
-def scientist(f, head):
+def scientist(f, head, symbol=True):
     s = Image.new('RGBA', (SW, SH), T); d = ImageDraw.Draw(s); b = f
     # piernas (se alternan entre cuadros)
     if f == 0: d.rectangle((4,25,7,28), fill=B); d.rectangle((10,25,13,27), fill=B)
@@ -104,9 +104,10 @@ def scientist(f, head):
     # antena con bola sobre la caja
     d.line([(20,11+b),(20,5+b)], fill=B); d.line([(21,11+b),(21,5+b)], fill=B)
     d.ellipse((18,0+b,23,5+b), fill=B); d.point((19,2+b), fill=Wh); d.point((20,1+b), fill=Wh)
-    # caja-generador con un rayo dibujado
+    # caja-generador; con "symbol" lleva un rayo dibujado (sin el, el codigo dibuja un volante encima)
     blob(d, [('r',(16,11+b,24,24+b))])
-    d.line([(21,13+b),(19,17+b)], fill=B); d.line([(19,17+b),(22,17+b)], fill=B); d.line([(22,17+b),(19,22+b)], fill=B)
+    if symbol:
+        d.line([(21,13+b),(19,17+b)], fill=B); d.line([(19,17+b),(22,17+b)], fill=B); d.line([(22,17+b),(19,22+b)], fill=B)
     # cuerpo (bata)
     blob(d, [('r',(3,17+b,15,25))])
     d.line([(9,18+b),(9,24)], fill=B); d.point((6,21+b), fill=B); d.point((12,21+b), fill=B)
@@ -127,6 +128,10 @@ DESIGNS = [
     ('cientifico_nube', lambda f: scientist(f, head_cloud)),
     ('cientifico_profesor', lambda f: scientist(f, head_professor)),
 ]
+# Las 4 cabezas tambien en version "_volante": caja sin el rayo, porque el codigo le dibuja un volante
+for name, headFn in (('cientifico', head_wild), ('cientifico_redondo', head_round),
+                     ('cientifico_nube', head_cloud), ('cientifico_profesor', head_professor)):
+    DESIGNS.append((name + '_volante', lambda f, headFn=headFn: scientist(f, headFn, symbol=False)))
 os.makedirs('source/images/player', exist_ok=True)
 for name, fn in DESIGNS:
     for f in (0, 1):

@@ -65,6 +65,11 @@ rows[6] = {
     },
     apply = function(mode) Player.boltMode = mode end,
 }
+rows[7] = {
+    label = "Mecanismo", index = 1,
+    options = { { text = "Manivela", value = "CRANK" }, { text = "Volante", value = "WHEEL" } },
+    apply = function(mechanism) Player.setMechanism(mechanism) end, -- despues del personaje: recarga sus dibujos
+}
 local cursor = 1 -- fila seleccionada
 
 -- Deja elegido el personaje que indica Config.DEBUG_CHARACTER (se llama al abrir el juego)

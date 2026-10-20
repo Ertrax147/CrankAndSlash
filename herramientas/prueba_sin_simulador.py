@@ -114,6 +114,7 @@ def run(seed, debug_hitboxes):
             lua.execute(f"Player.setCharacter(Characters.LIST[({frame // 500} + {seed}) % #Characters.LIST + 1])")
             modes = ("BODY", "ANTENNA", "BOTH", "NONE")
             lua.execute(f'Player.boltMode = "{modes[(frame // 500 + seed) % 4]}"')
+            lua.execute(f'Player.setMechanism("{("CRANK", "WHEEL")[(frame // 500) % 2]}")')
 
         # empujones para llegar rapido a situaciones raras
         if frame % 150 == 0:

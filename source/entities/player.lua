@@ -7,9 +7,11 @@ Player = {
     MAX_HP = 5,
     INVULN_TIME = 1.0, -- segundos sin recibir dano despues de un golpe
     FRAME_TIME = 0.15, -- segundos que dura cada cuadro de la caminata
+    mechanism = "CRANK", -- que gira en la caja: "CRANK" (manivela) o "WHEEL" (volante), lo cambia la pantalla de pruebas
     boltMode = "BODY", -- de donde salen los rayos: "BODY", "ANTENNA", "BOTH" o "NONE" (lo cambia la pantalla de pruebas)
     -- manivela de la caja (se dibuja por codigo, solo si el personaje la tiene: ver data/characters.lua)
     CRANK_LENGTH = 7,
+    WHEEL_RADIUS = 3,
     CRANK_MAX_SPEED = 6,     -- radianes por segundo con la energia llena (mas rapido se ve como temblor a 30 fps)
     -- rayos alrededor del personaje: cuantos y de que largo segun la energia
     BOLT_MIN_ENERGY = 0.1,   -- bajo esto no hay rayos
@@ -26,10 +28,25 @@ Player = {
 -- (miran a la derecha; a la izquierda se voltean)
 local frames
 
--- Cambia el personaje con el que se juega: carga sus dos dibujos
+-- Carga los dos dibujos del personaje actual. Con el volante se usa la version "_volante" (la caja
+-- sin el rayo dibujado, porque el volante se dibuja encima); los personajes sin volante usan siempre
+-- el dibujo normal.
+local function loadFrames()
+    local name = Player.character.SPRITE
+    if Player.mechanism == "WHEEL" and Player.character.WHEEL_X then name = name .. "_volante" end
+    frames = { gfx.image.new(name .. "_1"), gfx.image.new(name .. "_2") }
+end
+
+-- Cambia el personaje con el que se juega
 function Player.setCharacter(character)
     Player.character = character
-    frames = { gfx.image.new(character.SPRITE .. "_1"), gfx.image.new(character.SPRITE .. "_2") }
+    loadFrames()
+end
+
+-- Cambia lo que gira en la caja segun la energia: "CRANK" (manivela) o "WHEEL" (volante)
+function Player.setMechanism(mechanism)
+    Player.mechanism = mechanism
+    loadFrames()
 end
 
 Player.setCharacter(Characters[Config.DEBUG_CHARACTER])
@@ -113,6 +130,18 @@ local function drawCrank(pivotX, pivotY, side)
     gfx.fillCircleAtPoint(tipX, tipY, 2) -- la perilla
 end
 
+-- Dibuja el volante de la caja: un circulo con un rayo que gira con la energia, como la manivela.
+-- Va DESPUES del dibujo, encima de la caja (que en la version "_volante" no tiene el rayo dibujado).
+local function drawWheel(x, y, side)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.setLineWidth(1)
+    gfx.drawCircleAtPoint(x, y, Player.WHEEL_RADIUS)
+    local tipX = x + side * (Player.WHEEL_RADIUS - 1) * math.cos(Player.crankAngle)
+    local tipY = y + (Player.WHEEL_RADIUS - 1) * math.sin(Player.crankAngle)
+    gfx.drawLine(x, y, tipX, tipY)
+    gfx.fillCircleAtPoint(tipX, tipY, 1) -- la perilla
+end
+
 -- Dibuja un rayo en zigzag que sale de (startX, startY) hacia el angulo "base". "id" y "tick" solo
 -- sirven para que cada rayo tenga su forma y esta cambie cada BOLT_TICK segundos.
 local function drawBolt(startX, startY, base, id, tick)
@@ -177,14 +206,19 @@ function Player.draw()
         antennaX = screenX + side * (Player.character.ANTENNA_X - w / 2)
         antennaY = screenY + (Player.character.ANTENNA_Y + frame - 1) - h / 2
     end
+    local useWheel = Player.mechanism == "WHEEL" and Player.character.WHEEL_X ~= nil
     local pivotX, pivotY
-    if Player.character.CRANK_PIVOT_X then
+    if Player.character.CRANK_PIVOT_X and not useWheel then
         pivotX = screenX + side * (Player.character.CRANK_PIVOT_X - w / 2)
         pivotY = screenY + (Player.character.CRANK_PIVOT_Y + frame - 1) - h / 2
     end
 
     if Player.character.BOLTS then drawBolts(screenX, screenY, antennaX, antennaY) end
-    if Player.character.CRANK_PIVOT_X then drawCrank(pivotX, pivotY, side) end
+    if pivotX then drawCrank(pivotX, pivotY, side) end
     local flip = Player.facingLeft and gfx.kImageFlippedX or gfx.kImageUnflipped
     image:draw(screenX - w / 2, screenY - h / 2, flip)
+    if useWheel then
+        drawWheel(screenX + side * (Player.character.WHEEL_X - w / 2),
+            screenY + (Player.character.WHEEL_Y + frame - 1) - h / 2, side)
+    end
 end
