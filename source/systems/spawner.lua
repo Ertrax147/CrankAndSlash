@@ -6,6 +6,8 @@ local timer = 0 -- segundos desde el ultimo enemigo que aparecio
 
 function Spawner.reset()
     timer = 0
+    -- si la partida empieza en una ronda de jefe (desde la pantalla de pruebas), llega de inmediato
+    if Difficulty.isBossRound() then Enemy.spawnBoss() end
 end
 
 -- Hace aparecer un enemigo cada Difficulty.spawnInterval() segundos

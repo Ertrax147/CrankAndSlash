@@ -28,9 +28,9 @@ function Image:getSize() return 16, 16 end
 function Image:scaledImage() return self end
 
 local gfx = {
-    kColorBlack = 0, kColorWhite = 1,
+    kColorBlack = 0, kColorWhite = 1, kImageUnflipped = 0, kImageFlippedX = 1,
     setColor = noop, fillRect = noop, drawRect = noop, drawText = noop, drawLine = noop,
-    fillCircleAtPoint = noop, drawCircleAtPoint = noop, fillPolygon = noop, clear = noop,
+    fillCircleAtPoint = noop, setLineWidth = noop, drawCircleAtPoint = noop, fillPolygon = noop, clear = noop,
     getTextSize = function(text) return #text * 7, 18 end,
 }
 gfx.image = {
@@ -58,7 +58,7 @@ end
 
 function Harness.setInput(up, down, left, right, a, crank)
     Input.held = { [1] = up, [2] = down, [4] = left, [8] = right }
-    Input.pressed = { [1] = up, [2] = down, [16] = a }
+    Input.pressed = { [1] = up, [2] = down, [4] = left, [8] = right, [16] = a }
     Input.crank = crank
 end
 
@@ -102,9 +102,19 @@ def run(seed, debug_hitboxes):
         game_over = lua.eval("Player.hp <= 0")
         # con el menu abierto o en game over se aprieta A de vez en cuando; en el menu tambien arriba/abajo
         press_a = (menu_open or game_over) and rnd.random() < 0.15
+        # los primeros cuadros estan en la pantalla de pruebas (izq/der cambian el personaje); A empieza
+        if frame == 20:
+            press_a = True
         crank = rnd.choice((0, 0, 5, 20, -15))
         lua.eval(f"Harness.setInput({str(up).lower()}, {str(down).lower()}, {str(left).lower()}, "
                  f"{str(right).lower()}, {str(press_a).lower()}, {crank})")
+
+        # cambia de personaje jugable cada tanto, para probar los dibujos y datos de todos
+        if frame % 500 == 0:
+            lua.execute(f"Player.setCharacter(Characters.LIST[({frame // 500} + {seed}) % #Characters.LIST + 1])")
+            modes = ("BODY", "ANTENNA", "BOTH", "NONE")
+            lua.execute(f'Player.boltMode = "{modes[(frame // 500 + seed) % 4]}"')
+            lua.execute(f'Player.setMechanism("{("CRANK", "WHEEL")[(frame // 500) % 2]}")')
 
         # empujones para llegar rapido a situaciones raras
         if frame % 150 == 0:
@@ -113,6 +123,8 @@ def run(seed, debug_hitboxes):
             lua.execute("Round.timeLeft = 0.01")  # fuerza el cambio de ronda
         if frame % 400 == 0:
             lua.execute("Energy.value = Energy.MAX")
+        if frame % 400 == 200:
+            lua.execute("Energy.value = Energy.MAX * 0.4")  # energia media: pocos rayos
 
         ok, err = lua.eval("Harness.frame()")
         if not ok:
