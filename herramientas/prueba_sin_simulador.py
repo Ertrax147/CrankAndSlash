@@ -28,9 +28,9 @@ function Image:getSize() return 16, 16 end
 function Image:scaledImage() return self end
 
 local gfx = {
-    kColorBlack = 0, kColorWhite = 1,
+    kColorBlack = 0, kColorWhite = 1, kImageUnflipped = 0, kImageFlippedX = 1,
     setColor = noop, fillRect = noop, drawRect = noop, drawText = noop, drawLine = noop,
-    fillCircleAtPoint = noop, drawCircleAtPoint = noop, fillPolygon = noop, clear = noop,
+    fillCircleAtPoint = noop, setLineWidth = noop, drawCircleAtPoint = noop, fillPolygon = noop, clear = noop,
     getTextSize = function(text) return #text * 7, 18 end,
 }
 gfx.image = {
