@@ -20,6 +20,13 @@ Whip = {
 -- que enciende Whip.unlocked.
 Whip.startUnlocked = false -- true: la partida empieza con el latigo (la pantalla de pruebas lo puede cambiar)
 
+-- Hacia que lado pega cada golpe (la pantalla de pruebas lo puede cambiar):
+--   "NEAREST": hacia el lado donde esta el enemigo mas cercano (los enemigos te persiguen, asi que
+--              casi siempre estan detras de ti)
+--   "ALTERNATE": un golpe a un lado y el siguiente al otro
+--   "FACING": hacia donde mira el jugador (como el latigo de Vampire Survivors)
+Whip.aimMode = "NEAREST"
+
 function Whip.reset()
     Whip.unlocked = Whip.startUnlocked
     Whip.cooldown = 0   -- tiempo que falta para el proximo golpe
@@ -40,10 +47,24 @@ local function pointAt(f)
     return x, y
 end
 
--- Empieza un golpe nuevo hacia el lado que mira el jugador
+-- Elige el lado del proximo golpe (1 = derecha, -1 = izquierda) segun Whip.aimMode
+local function chooseSide()
+    if Whip.aimMode == "ALTERNATE" and Whip.swingId > 0 then
+        return -Whip.side -- el primer golpe va hacia donde mira; los demas se alternan
+    end
+    if Whip.aimMode == "NEAREST" then
+        local target = Enemy.closest(Player.x, Player.y)
+        if target and target.x ~= Player.x then
+            return target.x > Player.x and 1 or -1
+        end
+    end
+    return Player.facingLeft and -1 or 1 -- "FACING", o no hay enemigos a quienes apuntar
+end
+
+-- Empieza un golpe nuevo
 local function startSwing()
+    Whip.side = chooseSide() -- antes de sumar el golpe: chooseSide mira si ya hubo uno
     Whip.swingId = Whip.swingId + 1
-    Whip.side = Player.facingLeft and -1 or 1
     Whip.timer = Whip.SWING_TIME
     -- igual que Ranged.update: mas energia, menos espera entre golpes
     Whip.cooldown = Whip.BASE_COOLDOWN - (Whip.BASE_COOLDOWN - Whip.MIN_COOLDOWN) * Energy.ratio()

@@ -113,6 +113,8 @@ def run(seed, debug_hitboxes):
         if frame % 500 == 0:
             lua.execute(f"Player.setCharacter(Characters.LIST[({frame // 500} + {seed}) % #Characters.LIST + 1])")
             lua.execute(f"Whip.unlocked = {'true' if (frame // 500) % 2 == 0 else 'false'}")  # latigo encendido y apagado
+            aim = ("NEAREST", "ALTERNATE", "FACING")[(frame // 500 + seed) % 3]
+            lua.execute(f'Whip.aimMode = "{aim}"')  # el latigo cambia de modo de punteria
             modes = ("BODY", "ANTENNA", "BOTH", "NONE")
             lua.execute(f'Player.boltMode = "{modes[(frame // 500 + seed) % 4]}"')
             lua.execute(f'Player.setMechanism("{("CRANK", "WHEEL")[(frame // 500) % 2]}")')

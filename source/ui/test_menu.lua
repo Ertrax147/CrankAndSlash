@@ -6,7 +6,7 @@ local gfx = playdate.graphics
 
 TestMenu = {}
 
-local ROW_HEIGHT = 24   -- alto de cada fila (con 7 filas, mas alto no cabe en la pantalla de 240)
+local ROW_HEIGHT = 21   -- alto de cada fila (con 8 filas, mas alto no cabe en la pantalla de 240)
 local PREVIEW_SCALE = 2 -- el dibujo del personaje se muestra al doble de tamano
 local previews = {}     -- dibujos ampliados del personaje, guardados para no crearlos en cada cuadro
 
@@ -78,6 +78,15 @@ rows[7] = {
     options = { { text = "Manivela", value = "CRANK" }, { text = "Volante", value = "WHEEL" } },
     apply = function(mechanism) Player.setMechanism(mechanism) end, -- despues del personaje: recarga sus dibujos
 }
+rows[8] = {
+    label = "Latigo", index = 1,
+    options = {
+        { text = "Enemigo cercano", value = "NEAREST" },
+        { text = "Alternar", value = "ALTERNATE" },
+        { text = "Mirada", value = "FACING" },
+    },
+    apply = function(mode) Whip.aimMode = mode end,
+}
 local cursor = 1 -- fila seleccionada
 
 -- Deja elegido el personaje que indica Config.DEBUG_CHARACTER (se llama al abrir el juego)
@@ -128,15 +137,15 @@ function TestMenu.draw()
 
     local title = "MODO PRUEBAS"
     local titleWidth = gfx.getTextSize(title)
-    gfx.drawText(title, (Config.SCREEN_W - titleWidth) / 2, 10)
+    gfx.drawText(title, (Config.SCREEN_W - titleWidth) / 2, 6)
 
     for i = 1, #rows do
-        local top = 36 + (i - 1) * ROW_HEIGHT
+        local top = 30 + (i - 1) * ROW_HEIGHT
         local row = rows[i]
         gfx.drawText(row.label, 24, top)
         gfx.drawText("< " .. row.options[row.index].text .. " >", 130, top)
         if i == cursor then
-            gfx.drawRect(16, top - 3, 262, ROW_HEIGHT) -- marco alrededor de la fila elegida
+            gfx.drawRect(16, top - 2, 262, ROW_HEIGHT) -- marco alrededor de la fila elegida
         end
     end
 
