@@ -5,12 +5,12 @@
 local gfx = playdate.graphics
 
 Lightning = {
-    BASE_COOLDOWN = 2.0, -- segundos entre rayos sin energia
-    MIN_COOLDOWN = 0.7,  -- segundos entre rayos con energia llena
+    BASE_COOLDOWN = 3.0, -- segundos entre rayos sin energia
+    MIN_COOLDOWN = 1.2,  -- segundos entre rayos con energia llena
     RETRY_COOLDOWN = 0.2, -- si no hay enemigos al alcance, vuelve a mirar pronto
-    RANGE = 110,         -- distancia maxima a la que elige enemigos (pixeles)
-    DAMAGE = 3,          -- vida que le quita a cada enemigo
-    MAX_TARGETS = 3,     -- enemigos a la vez con la energia llena (sin energia, 1)
+    RANGE = 100,         -- distancia maxima a la que elige enemigos (pixeles)
+    DAMAGE = 2,          -- vida que le quita a cada enemigo
+    MAX_TARGETS = 2,     -- enemigos a la vez con la energia llena (sin energia, 1)
     FLASH_TIME = 0.15,   -- cuanto se ve cada rayo en pantalla
     SEGMENTS = 6,        -- tramos del zigzag
     JITTER = 7,          -- cuanto se desvia cada quiebre hacia los lados (pixeles)
