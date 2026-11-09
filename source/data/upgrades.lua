@@ -1,5 +1,5 @@
 -- Mejoras que se pueden elegir al subir de nivel. Cada una tiene un nombre, una descripcion corta
--- y una funcion "apply" que modifica las estadisticas (Stats) o da algo nuevo (la pistola, el latigo).
+-- y una funcion "apply" que modifica las estadisticas (Stats) o da algo nuevo (la pistola, el latigo, el rayo).
 -- Opcionalmente tiene "available": si existe y devuelve false, esa mejora no se ofrece (por
 -- ejemplo, la pistola no se ofrece si ya la tienes). El menu muestra CHOICES al azar.
 Upgrades = {
@@ -63,6 +63,12 @@ Upgrades.LIST = {
         text = "Arma nueva: golpea hacia donde miras",
         apply = function() Whip.unlocked = true end,
         available = function() return not Whip.unlocked end, -- solo se ofrece una vez
+    },
+    {
+        name = "Rayo",
+        text = "Arma nueva: rayos sobre los enemigos cercanos",
+        apply = function() Lightning.unlocked = true end,
+        available = function() return not Lightning.unlocked end, -- solo se ofrece una vez
     },
     {
         name = "Punteria",
