@@ -1,5 +1,7 @@
 -- Mejoras que se pueden elegir al subir de nivel. Cada una tiene un nombre, una descripcion corta
 -- y una funcion "apply" que modifica las estadisticas (Stats) o da algo nuevo (la pistola, el latigo, el rayo).
+-- Cada una tiene un "icon": el dibujo (24x24, de arte/herramientas/generar_iconos.py) que se ve a la
+-- izquierda en el menu de nivel.
 -- Opcionalmente tiene "available": si existe y devuelve false, esa mejora no se ofrece (por
 -- ejemplo, la pistola no se ofrece si ya la tienes). El menu muestra CHOICES al azar.
 Upgrades = {
@@ -21,6 +23,7 @@ end
 Upgrades.LIST = {
     {
         name = "Vitalidad",
+        icon = "images/icons/vitalidad",
         text = "+" .. Upgrades.HP_STEP .. " vida maxima y te cura " .. Upgrades.HP_STEP,
         apply = function()
             Stats.hpBonus = Stats.hpBonus + Upgrades.HP_STEP
@@ -29,49 +32,58 @@ Upgrades.LIST = {
     },
     {
         name = "Fuerza",
+        icon = "images/icons/fuerza",
         text = "+" .. percent(Upgrades.DAMAGE_STEP) .. "% de dano con todas las armas",
         apply = function() Stats.damageMult = Stats.damageMult + Upgrades.DAMAGE_STEP end,
     },
     {
         name = "Rapidez",
+        icon = "images/icons/rapidez",
         text = "+" .. percent(Upgrades.SPEED_STEP) .. "% de velocidad al moverte",
         apply = function() Stats.speedMult = Stats.speedMult + Upgrades.SPEED_STEP end,
     },
     {
         name = "Carga",
+        icon = "images/icons/carga",
         text = "+" .. percent(Upgrades.ENERGY_STEP) .. "% de energia por giro de la manivela",
         apply = function() Stats.energyMult = Stats.energyMult + Upgrades.ENERGY_STEP end,
     },
     {
         name = "Alcance",
+        icon = "images/icons/alcance",
         text = "+" .. percent(Upgrades.REACH_STEP) .. "% de alcance del arma y del latigo",
         apply = function() Stats.reachMult = Stats.reachMult + Upgrades.REACH_STEP end,
     },
     {
         name = "Iman",
+        icon = "images/icons/iman",
         text = "+" .. Upgrades.PICKUP_STEP .. " px de alcance para recoger gemas",
         apply = function() Stats.pickupBonus = Stats.pickupBonus + Upgrades.PICKUP_STEP end,
     },
     {
         name = "Pistola",
-        text = "Arma nueva: dispara sola al enemigo mas cercano",
+        icon = "images/icons/pistola",
+        text = "Arma nueva: dispara al mas cercano",
         apply = function() Ranged.unlocked = true end,
         available = function() return not Ranged.unlocked end, -- solo se ofrece una vez
     },
     {
         name = "Latigo",
-        text = "Arma nueva: golpea hacia donde miras",
+        icon = "images/icons/latigo",
+        text = "Arma nueva: golpea al enemigo cercano",
         apply = function() Whip.unlocked = true end,
         available = function() return not Whip.unlocked end, -- solo se ofrece una vez
     },
     {
         name = "Rayo",
-        text = "Arma nueva: rayos sobre los enemigos cercanos",
+        icon = "images/icons/rayo",
+        text = "Arma nueva: rayo sobre un enemigo",
         apply = function() Lightning.unlocked = true end,
         available = function() return not Lightning.unlocked end, -- solo se ofrece una vez
     },
     {
         name = "Punteria",
+        icon = "images/icons/punteria",
         text = "+" .. percent(Upgrades.FIRE_RATE_STEP) .. "% de cadencia de la pistola",
         apply = function() Stats.fireRateMult = Stats.fireRateMult + Upgrades.FIRE_RATE_STEP end,
         available = function() return Ranged.unlocked end, -- de nada sirve sin la pistola
