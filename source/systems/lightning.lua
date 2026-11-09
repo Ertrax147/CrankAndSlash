@@ -10,17 +10,18 @@ Lightning = {
     RETRY_COOLDOWN = 0.2, -- si no hay enemigos al alcance, vuelve a mirar pronto
     RANGE = 100,         -- distancia maxima a la que elige enemigos (pixeles)
     DAMAGE = 3,          -- vida que le quita a cada enemigo (pocos rayos, pero que se sientan)
-    MAX_TARGETS = 2,     -- enemigos a la vez con la energia llena (sin energia, 1)
+    MAX_TARGETS = 1,     -- enemigos a la vez (con 1, la energia solo hace los rayos mas seguidos)
     FLASH_TIME = 0.25,   -- cuanto se ve cada rayo en pantalla
     SEGMENTS = 8,        -- tramos del zigzag
     JITTER = 9,          -- cuanto se desvia cada quiebre hacia los lados (pixeles)
     SLANT = 40,          -- cuanto se corre hacia un lado el punto del cielo de donde cae (pixeles)
     FORK_LENGTH = 24,    -- largo de la rama que sale del rayo
     IMPACT_RADIUS = 14,  -- tamano maximo de la onda donde cae el rayo (estilo SIMPLE)
-    TRUNK_SEGMENTS = 10, -- tramos del tronco en el estilo BRANCHES
-    TRUNK_JITTER = 16,   -- cuanto se desvia cada quiebre del tronco (pixeles)
-    BRANCH_LENGTH = 26,  -- largo minimo de una rama del tronco (pixeles)
-    BRANCH_EXTRA = 40,   -- hasta cuanto mas largo puede ser (al azar)
+    TRUNK_SEGMENTS = 8,  -- tramos del tronco en el estilo BRANCHES
+    TRUNK_JITTER = 12,   -- cuanto se desvia cada quiebre del tronco (pixeles)
+    BRANCH_LENGTH = 16,  -- largo minimo de una rama del tronco (pixeles)
+    BRANCH_EXTRA = 24,   -- hasta cuanto mas largo puede ser (al azar)
+    SKY_HEIGHT = 100,    -- desde cuanto mas arriba del enemigo nace el tronco (estilo BRANCHES)
 }
 
 -- El rayo empieza apagado: el jugador lo consigue como una mejora al subir de nivel (Upgrades),
@@ -234,6 +235,12 @@ local function drawBranchedBolt(x0, y0, x1, y1, id, progress)
     end
 end
 
+-- Estilo BRANCHES: el disco plano de donde nace el rayo, arriba
+local function drawSource(x, y)
+    drawOutlined(x - 14, y, x + 14, y, 2)
+    drawOutlined(x - 7, y - 3, x + 7, y - 3, 1, 2)
+end
+
 -- Estilo BRANCHES: donde cae el rayo, un destello blanco con grietas que se abren hacia los lados
 local function drawCracks(x, y, progress)
     local reach = 9 + 15 * progress
@@ -272,11 +279,13 @@ function Lightning.draw()
         local endX, endY = Camera.toScreen(target.x, target.y)
         -- cae desde un punto del cielo, un poco corrido hacia un lado para que no sea tan vertical
         local startX = endX + (noise(i, 5, Lightning.strikeId) - 0.5) * 2 * Lightning.SLANT
-        local startY = math.min(-10, endY - 60) -- siempre arriba del borde de la pantalla
         if Lightning.style == "SIMPLE" then
+            local startY = math.min(-10, endY - 60) -- siempre arriba del borde de la pantalla
             drawSimpleBolt(startX, startY, endX, endY, i, progress < 0.5 and 3 or 1)
             drawSimpleImpact(endX, endY, progress)
         else
+            local startY = endY - Lightning.SKY_HEIGHT -- nace mas cerca: un rayo mas chico
+            if progress < 0.7 then drawSource(startX, startY) end
             drawBranchedBolt(startX, startY, endX, endY, i, progress)
             drawCracks(endX, endY, progress)
         end
