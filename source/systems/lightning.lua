@@ -5,23 +5,32 @@
 local gfx = playdate.graphics
 
 Lightning = {
-    BASE_COOLDOWN = 3.0, -- segundos entre rayos sin energia
-    MIN_COOLDOWN = 1.2,  -- segundos entre rayos con energia llena
+    BASE_COOLDOWN = 5.0, -- segundos entre rayos sin energia
+    MIN_COOLDOWN = 2.5,  -- segundos entre rayos con energia llena
     RETRY_COOLDOWN = 0.2, -- si no hay enemigos al alcance, vuelve a mirar pronto
     RANGE = 100,         -- distancia maxima a la que elige enemigos (pixeles)
-    DAMAGE = 2,          -- vida que le quita a cada enemigo
+    DAMAGE = 3,          -- vida que le quita a cada enemigo (pocos rayos, pero que se sientan)
     MAX_TARGETS = 2,     -- enemigos a la vez con la energia llena (sin energia, 1)
     FLASH_TIME = 0.25,   -- cuanto se ve cada rayo en pantalla
     SEGMENTS = 8,        -- tramos del zigzag
     JITTER = 9,          -- cuanto se desvia cada quiebre hacia los lados (pixeles)
     SLANT = 40,          -- cuanto se corre hacia un lado el punto del cielo de donde cae (pixeles)
     FORK_LENGTH = 24,    -- largo de la rama que sale del rayo
-    IMPACT_RADIUS = 14,  -- tamano maximo de la onda donde cae el rayo
+    IMPACT_RADIUS = 14,  -- tamano maximo de la onda donde cae el rayo (estilo SIMPLE)
+    TRUNK_SEGMENTS = 10, -- tramos del tronco en el estilo BRANCHES
+    TRUNK_JITTER = 16,   -- cuanto se desvia cada quiebre del tronco (pixeles)
+    BRANCH_LENGTH = 26,  -- largo minimo de una rama del tronco (pixeles)
+    BRANCH_EXTRA = 40,   -- hasta cuanto mas largo puede ser (al azar)
 }
 
 -- El rayo empieza apagado: el jugador lo consigue como una mejora al subir de nivel (Upgrades),
 -- que enciende Lightning.unlocked.
 Lightning.startUnlocked = false -- true: la partida empieza con el rayo (la pantalla de pruebas lo puede cambiar)
+
+-- Como se dibuja el rayo (la pantalla de pruebas lo puede cambiar):
+--   "BRANCHES": tronco que se estira desde el cielo con muchas ramas, y grietas donde cae
+--   "SIMPLE": un zigzag con una sola rama y una onda donde cae
+Lightning.style = "BRANCHES"
 
 function Lightning.reset()
     Lightning.unlocked = Lightning.startUnlocked
@@ -114,18 +123,18 @@ function Lightning.update(dt)
 end
 
 -- Dibuja una linea con borde blanco (para que se vea sobre cualquier fondo)
-local function drawOutlined(x0, y0, x1, y1, width)
+local function drawOutlined(x0, y0, x1, y1, width, halo)
     gfx.setColor(gfx.kColorWhite)
-    gfx.setLineWidth(width + 3)
+    gfx.setLineWidth(width + (halo or 3))
     gfx.drawLine(x0, y0, x1, y1)
     gfx.setColor(gfx.kColorBlack)
     gfx.setLineWidth(width)
     gfx.drawLine(x0, y0, x1, y1)
 end
 
--- Dibuja un rayo en zigzag entre dos puntos de pantalla, con una rama a mitad de camino. Cada
+-- Estilo SIMPLE: un rayo en zigzag entre dos puntos de pantalla, con una rama a mitad de camino. Cada
 -- quiebre se desvia hacia un lado y hacia el otro; "id" y strikeId dan su forma a cada rayo.
-local function drawBolt(x0, y0, x1, y1, id, width)
+local function drawSimpleBolt(x0, y0, x1, y1, id, width)
     local dx, dy = x1 - x0, y1 - y0
     local length = math.sqrt(dx * dx + dy * dy)
     if length < 1 then return end
@@ -151,9 +160,9 @@ local function drawBolt(x0, y0, x1, y1, id, width)
     end
 end
 
--- Dibuja el golpe donde cae el rayo: un centro blanco, una onda que se abre y chispas alrededor.
+-- Estilo SIMPLE: el golpe donde cae el rayo: un centro blanco, una onda que se abre y chispas alrededor.
 -- progress va de 0 (recien cae) a 1 (se apaga).
-local function drawImpact(x, y, progress)
+local function drawSimpleImpact(x, y, progress)
     local radius = 4 + Lightning.IMPACT_RADIUS * progress
     gfx.setLineWidth(1)
     gfx.setColor(gfx.kColorWhite)
@@ -170,6 +179,78 @@ local function drawImpact(x, y, progress)
     end
 end
 
+-- Estilo BRANCHES: una rama que sale de (x, y) hacia el angulo "angle", se quiebra en 2 o 3 tramos y
+-- puede tener una subrama. "salt" da a cada rama una forma distinta.
+local function drawBranch(x, y, angle, length, depth, id, salt)
+    local segments = depth == 1 and 4 or 2
+    local step = length / segments
+    for j = 1, segments do
+        local turned = angle + (noise(id, salt + j, Lightning.strikeId) - 0.5) * 1.3
+        local nextX = x + math.cos(turned) * step
+        local nextY = y + math.sin(turned) * step
+        drawOutlined(x, y, nextX, nextY, 1, 2)
+        x, y = nextX, nextY
+        if depth == 1 and (j == 2 or j == 3) and noise(id, salt + 50 + j, Lightning.strikeId) < 0.65 then
+            local side = noise(id, salt + 60 + j, Lightning.strikeId) < 0.5 and -1 or 1
+            drawBranch(x, y, turned + side * 0.8, length * 0.55, 2, id, salt + 100 * j)
+        end
+    end
+end
+
+-- Estilo BRANCHES: el tronco cae desde el cielo hasta el enemigo en zigzag y de cada quiebre salen
+-- ramas hacia los lados y hacia abajo. "progress" (0 a 1) maneja la animacion: el tronco se va
+-- estirando hacia abajo, las ramas aparecen un momento y al final solo queda un hilo.
+local function drawBranchedBolt(x0, y0, x1, y1, id, progress)
+    local reveal = math.min(1, (progress + 0.13) / 0.3) -- cuanto del tronco ya cayo
+    local width = progress < 0.4 and 3 or (progress < 0.7 and 2 or 1)
+    local showBranches = progress > 0.05 and progress < 0.7
+    local dx, dy = x1 - x0, y1 - y0
+    local length = math.sqrt(dx * dx + dy * dy)
+    if length < 1 then return end
+    local perpX, perpY = -dy / length, dx / length
+    local trunkAngle = math.atan(dy, dx)
+    local lastSegment = math.max(1, math.floor(reveal * Lightning.TRUNK_SEGMENTS))
+    local prevX, prevY = x0, y0
+    for k = 1, lastSegment do
+        local f = k / Lightning.TRUNK_SEGMENTS
+        local x = x0 + dx * f
+        local y = y0 + dy * f
+        if k < Lightning.TRUNK_SEGMENTS then -- el ultimo tramo termina justo en el enemigo
+            local offset = (noise(id, k, Lightning.strikeId) - 0.5) * 2 * Lightning.TRUNK_JITTER
+            x = x + perpX * offset
+            y = y + perpY * offset
+        end
+        drawOutlined(prevX, prevY, x, y, width)
+        -- de casi cada quiebre sale una rama, mas corta cerca del suelo
+        if showBranches and k >= 2 and k < Lightning.TRUNK_SEGMENTS - 1
+            and noise(id, 200 + k, Lightning.strikeId) < 0.85 then
+            local side = noise(id, 300 + k, Lightning.strikeId) < 0.5 and -1 or 1
+            local angle = trunkAngle + side * (0.35 + noise(id, 400 + k, Lightning.strikeId) * 0.8)
+            local branchLength = (Lightning.BRANCH_LENGTH + noise(id, 500 + k, Lightning.strikeId) * Lightning.BRANCH_EXTRA)
+                * (1.2 - f * 0.6)
+            drawBranch(x, y, angle, branchLength, 1, id, k * 7)
+        end
+        prevX, prevY = x, y
+    end
+end
+
+-- Estilo BRANCHES: donde cae el rayo, un destello blanco con grietas que se abren hacia los lados
+local function drawCracks(x, y, progress)
+    local reach = 9 + 15 * progress
+    for i = 1, 7 do
+        local angle = (i / 7) * 2 * math.pi + noise(i, 3, Lightning.strikeId) * 0.8
+        local midX = x + math.cos(angle) * reach * 0.55 + (noise(i, 4, Lightning.strikeId) - 0.5) * 6
+        local midY = y + math.sin(angle) * reach * 0.55 + (noise(i, 5, Lightning.strikeId) - 0.5) * 6
+        drawOutlined(x, y, midX, midY, 1, 2)
+        drawOutlined(midX, midY, x + math.cos(angle) * reach, y + math.sin(angle) * reach, 1, 2)
+    end
+    gfx.setLineWidth(1)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillCircleAtPoint(x, y, 6 - 3 * progress)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.drawCircleAtPoint(x, y, 3)
+end
+
 -- Chispas cortas alrededor de la bola de la antena: es la antena la que "llama" al rayo
 local function drawAntennaSpark(x, y)
     gfx.setLineWidth(1)
@@ -182,19 +263,23 @@ local function drawAntennaSpark(x, y)
 end
 
 -- Dibuja los rayos del ultimo golpe mientras duran (FLASH_TIME): caen desde arriba de la pantalla
--- sobre cada enemigo, y la antena echa chispas. Primero son gruesos y luego se afinan.
+-- sobre cada enemigo (segun Lightning.style), y la antena echa chispas.
 function Lightning.draw()
     if Lightning.flash <= 0 then return end
     local progress = 1 - Lightning.flash / Lightning.FLASH_TIME -- 0 al caer, 1 al apagarse
-    local width = progress < 0.5 and 3 or 1
     for i = 1, Lightning.targetCount do
         local target = Lightning.targets[i]
         local endX, endY = Camera.toScreen(target.x, target.y)
         -- cae desde un punto del cielo, un poco corrido hacia un lado para que no sea tan vertical
         local startX = endX + (noise(i, 5, Lightning.strikeId) - 0.5) * 2 * Lightning.SLANT
         local startY = math.min(-10, endY - 60) -- siempre arriba del borde de la pantalla
-        drawBolt(startX, startY, endX, endY, i, width)
-        drawImpact(endX, endY, progress)
+        if Lightning.style == "SIMPLE" then
+            drawSimpleBolt(startX, startY, endX, endY, i, progress < 0.5 and 3 or 1)
+            drawSimpleImpact(endX, endY, progress)
+        else
+            drawBranchedBolt(startX, startY, endX, endY, i, progress)
+            drawCracks(endX, endY, progress)
+        end
     end
     if progress < 0.5 then
         local antennaX, antennaY = Player.antennaWorld()
