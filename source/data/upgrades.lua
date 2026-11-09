@@ -1,5 +1,5 @@
 -- Mejoras que se pueden elegir al subir de nivel. Cada una tiene un nombre, una descripcion corta
--- y una funcion "apply" que modifica las estadisticas (Stats) o da algo nuevo (la pistola).
+-- y una funcion "apply" que modifica las estadisticas (Stats) o da algo nuevo (la pistola, el latigo).
 -- Opcionalmente tiene "available": si existe y devuelve false, esa mejora no se ofrece (por
 -- ejemplo, la pistola no se ofrece si ya la tienes). El menu muestra CHOICES al azar.
 Upgrades = {
@@ -29,7 +29,7 @@ Upgrades.LIST = {
     },
     {
         name = "Fuerza",
-        text = "+" .. percent(Upgrades.DAMAGE_STEP) .. "% de dano con el arma y la pistola",
+        text = "+" .. percent(Upgrades.DAMAGE_STEP) .. "% de dano con todas las armas",
         apply = function() Stats.damageMult = Stats.damageMult + Upgrades.DAMAGE_STEP end,
     },
     {
@@ -44,7 +44,7 @@ Upgrades.LIST = {
     },
     {
         name = "Alcance",
-        text = "+" .. percent(Upgrades.REACH_STEP) .. "% de distancia a la que gira el arma",
+        text = "+" .. percent(Upgrades.REACH_STEP) .. "% de alcance del arma y del latigo",
         apply = function() Stats.reachMult = Stats.reachMult + Upgrades.REACH_STEP end,
     },
     {
@@ -57,6 +57,12 @@ Upgrades.LIST = {
         text = "Arma nueva: dispara sola al enemigo mas cercano",
         apply = function() Ranged.unlocked = true end,
         available = function() return not Ranged.unlocked end, -- solo se ofrece una vez
+    },
+    {
+        name = "Latigo",
+        text = "Arma nueva: golpea hacia donde miras",
+        apply = function() Whip.unlocked = true end,
+        available = function() return not Whip.unlocked end, -- solo se ofrece una vez
     },
     {
         name = "Punteria",
