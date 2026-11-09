@@ -103,6 +103,11 @@ rows[10] = {
     },
     apply = function(name) Map.setFloor(name) end,
 }
+rows[11] = {
+    label = "Latigo dibujo", index = 1,
+    options = { { text = "Arco", value = "ARC" }, { text = "Linea", value = "LINE" } },
+    apply = function(style) Whip.drawStyle = style end,
+}
 local cursor = 1 -- fila seleccionada
 local scroll = 0 -- cuantas filas de arriba estan escondidas (la lista se desplaza si hay mas de VISIBLE_ROWS)
 

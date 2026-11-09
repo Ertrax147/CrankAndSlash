@@ -13,7 +13,9 @@ Whip = {
     DAMAGE = 2,           -- vida que le quita a un enemigo por golpe (la espada quita 1)
     HIT_RADIUS = 6,       -- radio de cada circulo de dano
     HIT_SPACING = 10,     -- distancia entre un circulo de dano y el siguiente
-    DRAW_SEGMENTS = 6,    -- en cuantos tramos se dibuja la curva del latigo
+    DRAW_SEGMENTS = 6,    -- en cuantos tramos se dibuja la curva del latigo (estilo LINE)
+    ARC_STEPS = 28,       -- circulos con los que se dibuja la banda del estilo ARC (muchos, para que el borde salga liso)
+    ARC_THICKNESS = 4.5,  -- radio de la banda en el mango; se afina hasta la punta
 }
 
 -- El latigo empieza apagado: el jugador lo consigue como una mejora al subir de nivel (Upgrades),
@@ -26,6 +28,11 @@ Whip.startUnlocked = false -- true: la partida empieza con el latigo (la pantall
 --   "ALTERNATE": un golpe a un lado y el siguiente al otro
 --   "FACING": hacia donde mira el jugador (como el latigo de Vampire Survivors)
 Whip.aimMode = "NEAREST"
+
+-- Como se dibuja el latigo (la pantalla de pruebas lo puede cambiar):
+--   "ARC": una banda negra gruesa en el mango que se afina hasta la punta, como un latigo de verdad
+--   "LINE": una linea fina con una bolita en la punta (el primer diseno)
+Whip.drawStyle = "ARC"
 
 function Whip.reset()
     Whip.unlocked = Whip.startUnlocked
@@ -111,11 +118,10 @@ local function screenPointAt(f)
     return Camera.toScreen(x, y)
 end
 
--- Dibuja el latigo como una linea con borde blanco (para que se vea sobre cualquier fondo) y una
+-- Estilo LINE: el latigo como una linea con borde blanco (para que se vea sobre cualquier fondo) y una
 -- bolita en la punta. Solo se ve mientras dura el golpe. Lo que hace dano son los circulos de
 -- Whip.hits, no este dibujo (ver DEBUG_HITBOXES). No crea tablas: se dibuja cada cuadro.
-function Whip.draw()
-    if Whip.timer <= 0 or Whip.ext < 2 then return end
+local function drawLineStyle()
 
     for pass = 1, 2 do
         if pass == 1 then
@@ -136,4 +142,37 @@ function Whip.draw()
     gfx.setColor(gfx.kColorBlack)
     gfx.setLineWidth(1)
     gfx.fillCircleAtPoint(tipX, tipY, 3)
+end
+
+-- Estilo ARC: el latigo como una banda negra gruesa en el mango que se va afinando hasta la punta, con
+-- un borde blanco para que se vea sobre cualquier fondo. Se hace con circulos a lo largo de la curva:
+-- primero los blancos (un poco mas grandes) y encima los negros. Es mas delgada mientras el latigo
+-- aun no se estira del todo.
+local function drawArcStyle()
+    local stretch = math.min(1, Whip.ext / (Whip.LENGTH * Stats.reachMult) * 1.5)
+    for pass = 1, 2 do
+        if pass == 1 then
+            gfx.setColor(gfx.kColorWhite)
+        else
+            gfx.setColor(gfx.kColorBlack)
+        end
+        for i = 1, Whip.ARC_STEPS do
+            local f = i / Whip.ARC_STEPS
+            local x, y = screenPointAt(f)
+            local radius = Whip.ARC_THICKNESS * (1 - f) * stretch + 0.8
+            if pass == 1 then radius = radius + 1.5 end
+            gfx.fillCircleAtPoint(x, y, radius)
+        end
+    end
+end
+
+-- Dibuja el latigo segun Whip.drawStyle. Solo se ve mientras dura el golpe. Lo que hace dano son los
+-- circulos de Whip.hits, no este dibujo (ver DEBUG_HITBOXES).
+function Whip.draw()
+    if Whip.timer <= 0 or Whip.ext < 2 then return end
+    if Whip.drawStyle == "LINE" then
+        drawLineStyle()
+    else
+        drawArcStyle()
+    end
 end
