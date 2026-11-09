@@ -115,6 +115,8 @@ def run(seed, debug_hitboxes):
             lua.execute(f"Whip.unlocked = {'true' if (frame // 500) % 2 == 0 else 'false'}")  # latigo encendido y apagado
             lua.execute(f"Lightning.unlocked = {'true' if (frame // 500) % 3 != 1 else 'false'}")  # rayo encendido y apagado
             lua.execute(f'Lightning.style = "{("BRANCHES", "SIMPLE")[(frame // 500 + seed) % 2]}"')  # estilo del rayo
+            floors = ("GRASS", "CLEAN", "DOTS", "DIRT", "STONE", "SAND")
+            lua.execute(f'Map.setFloor("{floors[(frame // 500 + seed) % len(floors)]}")')  # el suelo cambia
             aim = ("NEAREST", "ALTERNATE", "FACING")[(frame // 500 + seed) % 3]
             lua.execute(f'Whip.aimMode = "{aim}"')  # el latigo cambia de modo de punteria
             modes = ("BODY", "ANTENNA", "BOTH", "NONE")

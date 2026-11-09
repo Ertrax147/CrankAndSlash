@@ -43,8 +43,24 @@ local TAU = 6.2832
 local VERTICAL = { salt = 11, offset = 12, spacing = 60, percent = 75 }
 local HORIZONTAL = { salt = 23, offset = 13, spacing = 84, percent = 55 }
 
--- Las imagenes se cargan una sola vez; el pasto se agranda una sola vez (no en cada frame)
-local grassTile = gfx.image.new("images/map/grass_tile"):scaledImage(Map.SCALE)
+-- Suelos que se pueden elegir (la pantalla de pruebas llama a Map.setFloor): nombre -> dibujo de 16x16.
+-- GRASS es el pasto del tileset; los demas se generan con arte/herramientas/generar_suelos.py.
+Map.FLOORS = {
+    GRASS = "images/map/grass_tile",
+    CLEAN = "images/map/floor_clean",
+    DOTS = "images/map/floor_dots",
+    DIRT = "images/map/floor_dirt",
+    STONE = "images/map/floor_stone",
+    SAND = "images/map/floor_sand",
+}
+
+-- Las imagenes se cargan una sola vez; el suelo se agranda una sola vez (no en cada frame)
+local floorTile = gfx.image.new(Map.FLOORS.GRASS):scaledImage(Map.SCALE)
+
+-- Cambia el suelo del mapa por el de ese nombre (una de las claves de Map.FLOORS)
+function Map.setFloor(name)
+    floorTile = gfx.image.new(Map.FLOORS[name]):scaledImage(Map.SCALE)
+end
 local dirtHalf = gfx.image.new("images/map/dirt_half")
 -- Arbol con copa en tablero (relleno al 50%) y un brillo arriba: se distingue del pasto, que es
 -- claro, y no es negro solido, porque el jugador, las armas y los enemigos son negros y sobre un
@@ -220,7 +236,7 @@ local function drawLamps(firstHx, lastHx, firstHy, lastHy)
     end
 end
 
--- Dibuja primero el pasto, luego los caminos, luego las farolas y por ultimo los arboles.
+-- Dibuja primero el suelo, luego los caminos, luego las farolas y por ultimo los arboles.
 -- Las celdas se recorren de arriba hacia abajo, asi lo que esta mas abajo tapa a lo de atras.
 function Map.draw()
     local size = Map.TILE_SIZE
@@ -234,7 +250,7 @@ function Map.draw()
     for cy = firstCy, lastCy do
         for cx = firstCx, lastCx do
             local screenX, screenY = Camera.toScreen(cx * size, cy * size)
-            grassTile:draw(screenX, screenY)
+            floorTile:draw(screenX, screenY)
         end
     end
 
