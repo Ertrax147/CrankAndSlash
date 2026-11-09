@@ -1,7 +1,7 @@
 -- Rayo: cada cierto tiempo cae un rayo en zigzag sobre los enemigos mas cercanos. Mas energia de la
 -- manivela = rayos mas seguidos y sobre mas enemigos a la vez. El dano es instantaneo (no hay zona
--- de dano): al caer el rayo, cada enemigo elegido pierde vida. El rayo sale de la antena del
--- personaje, o de su centro si no tiene.
+-- de dano): al caer el rayo, cada enemigo elegido pierde vida. El rayo cae desde el cielo sobre el
+-- enemigo; si el personaje tiene antena, esta echa chispas como si lo llamara.
 local gfx = playdate.graphics
 
 Lightning = {
@@ -11,9 +11,12 @@ Lightning = {
     RANGE = 100,         -- distancia maxima a la que elige enemigos (pixeles)
     DAMAGE = 2,          -- vida que le quita a cada enemigo
     MAX_TARGETS = 2,     -- enemigos a la vez con la energia llena (sin energia, 1)
-    FLASH_TIME = 0.15,   -- cuanto se ve cada rayo en pantalla
-    SEGMENTS = 6,        -- tramos del zigzag
-    JITTER = 7,          -- cuanto se desvia cada quiebre hacia los lados (pixeles)
+    FLASH_TIME = 0.25,   -- cuanto se ve cada rayo en pantalla
+    SEGMENTS = 8,        -- tramos del zigzag
+    JITTER = 9,          -- cuanto se desvia cada quiebre hacia los lados (pixeles)
+    SLANT = 40,          -- cuanto se corre hacia un lado el punto del cielo de donde cae (pixeles)
+    FORK_LENGTH = 24,    -- largo de la rama que sale del rayo
+    IMPACT_RADIUS = 14,  -- tamano maximo de la onda donde cae el rayo
 }
 
 -- El rayo empieza apagado: el jugador lo consigue como una mejora al subir de nivel (Upgrades),
@@ -110,50 +113,94 @@ function Lightning.update(dt)
     if Lightning.cooldown <= 0 then strike() end
 end
 
--- Dibuja un zigzag con borde blanco entre dos puntos de pantalla. Cada quiebre se desvia hacia un
--- lado y hacia el otro; "id" da su forma a cada rayo y a cada tramo.
-local function drawZigzag(x0, y0, x1, y1, id)
+-- Dibuja una linea con borde blanco (para que se vea sobre cualquier fondo)
+local function drawOutlined(x0, y0, x1, y1, width)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.setLineWidth(width + 3)
+    gfx.drawLine(x0, y0, x1, y1)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.setLineWidth(width)
+    gfx.drawLine(x0, y0, x1, y1)
+end
+
+-- Dibuja un rayo en zigzag entre dos puntos de pantalla, con una rama a mitad de camino. Cada
+-- quiebre se desvia hacia un lado y hacia el otro; "id" y strikeId dan su forma a cada rayo.
+local function drawBolt(x0, y0, x1, y1, id, width)
     local dx, dy = x1 - x0, y1 - y0
     local length = math.sqrt(dx * dx + dy * dy)
     if length < 1 then return end
     local perpX, perpY = -dy / length, dx / length -- direccion perpendicular a la linea
-    for pass = 1, 2 do
-        if pass == 1 then
-            gfx.setColor(gfx.kColorWhite)
-            gfx.setLineWidth(5)
-        else
-            gfx.setColor(gfx.kColorBlack)
-            gfx.setLineWidth(2)
+    local prevX, prevY = x0, y0
+    local forkAt = math.floor(Lightning.SEGMENTS / 2)
+    for i = 1, Lightning.SEGMENTS do
+        local f = i / Lightning.SEGMENTS
+        local x = x0 + dx * f
+        local y = y0 + dy * f
+        if i < Lightning.SEGMENTS then -- el ultimo tramo termina justo en el enemigo
+            local offset = (noise(id, i, Lightning.strikeId) - 0.5) * 2 * Lightning.JITTER
+            x = x + perpX * offset
+            y = y + perpY * offset
         end
-        local prevX, prevY = x0, y0
-        for i = 1, Lightning.SEGMENTS do
-            local f = i / Lightning.SEGMENTS
-            local x = x0 + dx * f
-            local y = y0 + dy * f
-            if i < Lightning.SEGMENTS then -- el ultimo tramo termina justo en el enemigo
-                local offset = (noise(id, i, Lightning.strikeId) - 0.5) * 2 * Lightning.JITTER
-                x = x + perpX * offset
-                y = y + perpY * offset
-            end
-            gfx.drawLine(prevX, prevY, x, y)
-            prevX, prevY = x, y
+        drawOutlined(prevX, prevY, x, y, width)
+        if i == forkAt then
+            -- rama corta que sale del rayo hacia un lado y hacia abajo
+            local side = noise(id, 99, Lightning.strikeId) < 0.5 and -1 or 1
+            drawOutlined(x, y, x + side * Lightning.FORK_LENGTH * 0.8, y + Lightning.FORK_LENGTH * 0.6, 1)
         end
+        prevX, prevY = x, y
     end
 end
 
--- Dibuja los rayos del ultimo golpe mientras duran (FLASH_TIME): del personaje a cada enemigo,
--- con un circulo donde cae.
+-- Dibuja el golpe donde cae el rayo: un centro blanco, una onda que se abre y chispas alrededor.
+-- progress va de 0 (recien cae) a 1 (se apaga).
+local function drawImpact(x, y, progress)
+    local radius = 4 + Lightning.IMPACT_RADIUS * progress
+    gfx.setLineWidth(1)
+    gfx.setColor(gfx.kColorWhite)
+    gfx.fillCircleAtPoint(x, y, 6 - 3 * progress)
+    gfx.setColor(gfx.kColorBlack)
+    gfx.drawCircleAtPoint(x, y, radius)
+    gfx.drawCircleAtPoint(x, y, 3)
+    for i = 1, 6 do -- chispas que salen hacia afuera
+        local angle = (i / 6) * 2 * math.pi + Lightning.strikeId
+        local inner = radius * 0.6
+        local outer = radius + 5
+        gfx.drawLine(x + math.cos(angle) * inner, y + math.sin(angle) * inner,
+            x + math.cos(angle) * outer, y + math.sin(angle) * outer)
+    end
+end
+
+-- Chispas cortas alrededor de la bola de la antena: es la antena la que "llama" al rayo
+local function drawAntennaSpark(x, y)
+    gfx.setLineWidth(1)
+    gfx.setColor(gfx.kColorBlack)
+    for i = 1, 5 do
+        local angle = (i / 5) * math.pi - math.pi + noise(i, 7, Lightning.strikeId) * 0.5
+        gfx.drawLine(x + math.cos(angle) * 4, y + math.sin(angle) * 4,
+            x + math.cos(angle) * 9, y + math.sin(angle) * 9)
+    end
+end
+
+-- Dibuja los rayos del ultimo golpe mientras duran (FLASH_TIME): caen desde arriba de la pantalla
+-- sobre cada enemigo, y la antena echa chispas. Primero son gruesos y luego se afinan.
 function Lightning.draw()
     if Lightning.flash <= 0 then return end
-    local originX, originY = Player.antennaWorld()
-    if not originX then originX, originY = Player.x, Player.y end
-    local startX, startY = Camera.toScreen(originX, originY)
+    local progress = 1 - Lightning.flash / Lightning.FLASH_TIME -- 0 al caer, 1 al apagarse
+    local width = progress < 0.5 and 3 or 1
     for i = 1, Lightning.targetCount do
         local target = Lightning.targets[i]
         local endX, endY = Camera.toScreen(target.x, target.y)
-        drawZigzag(startX, startY, endX, endY, i)
-        gfx.setColor(gfx.kColorBlack)
-        gfx.setLineWidth(1)
-        gfx.fillCircleAtPoint(endX, endY, 4)
+        -- cae desde un punto del cielo, un poco corrido hacia un lado para que no sea tan vertical
+        local startX = endX + (noise(i, 5, Lightning.strikeId) - 0.5) * 2 * Lightning.SLANT
+        local startY = math.min(-10, endY - 60) -- siempre arriba del borde de la pantalla
+        drawBolt(startX, startY, endX, endY, i, width)
+        drawImpact(endX, endY, progress)
+    end
+    if progress < 0.5 then
+        local antennaX, antennaY = Player.antennaWorld()
+        if antennaX then
+            local screenX, screenY = Camera.toScreen(antennaX, antennaY)
+            drawAntennaSpark(screenX, screenY)
+        end
     end
 end
