@@ -105,7 +105,7 @@ rows[10] = {
 }
 rows[11] = {
     label = "Latigo dibujo", index = 1,
-    options = { { text = "Arco", value = "ARC" }, { text = "Linea", value = "LINE" } },
+    options = { { text = "Trenzado", value = "BRAID" }, { text = "Arco", value = "ARC" }, { text = "Linea", value = "LINE" } },
     apply = function(style) Whip.drawStyle = style end,
 }
 rows[12] = {

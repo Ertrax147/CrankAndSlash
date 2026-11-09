@@ -117,7 +117,7 @@ def run(seed, debug_hitboxes):
             lua.execute(f'Lightning.style = "{("BRANCHES", "SIMPLE")[(frame // 500 + seed) % 2]}"')  # estilo del rayo
             floors = ("GRASS", "CLEAN", "DOTS", "DIRT", "STONE", "SAND")
             lua.execute(f'Map.setFloor("{floors[(frame // 500 + seed) % len(floors)]}")')  # el suelo cambia
-            lua.execute(f'Whip.drawStyle = "{("ARC", "LINE")[(frame // 500 + seed) % 2]}"')  # dibujo del latigo
+            lua.execute(f'Whip.drawStyle = "{("BRAID", "ARC", "LINE")[(frame // 500 + seed) % 3]}"')  # dibujo del latigo
             lua.execute(f"Effects.enabled = {'true' if (frame // 500 + seed) % 2 == 0 else 'false'}")  # efectos de golpe
             aim = ("NEAREST", "ALTERNATE", "FACING")[(frame // 500 + seed) % 3]
             lua.execute(f'Whip.aimMode = "{aim}"')  # el latigo cambia de modo de punteria
