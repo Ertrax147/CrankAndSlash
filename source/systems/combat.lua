@@ -45,6 +45,22 @@ function Combat.update()
                     if struck then break end -- ya se encontro un golpe este frame, no revisar mas armas
                 end
             end
+            -- latigo vs enemigo: cada golpe del latigo (Whip.swingId) le pega una sola vez a cada enemigo,
+            -- aunque lo toque varios frames mientras se estira. No usa e.hitTimer, que es de las armas
+            -- que giran, asi el latigo y la espada no se anulan entre si.
+            if e.active and Whip.hitCount > 0 and e.lastWhipSwing ~= Whip.swingId then
+                for k = 1, Whip.hitCount do
+                    local hit = Whip.hits[k]
+                    if Collision.circles(hit.x, hit.y, hit.r, e.x, e.y, e.def.RADIUS) then
+                        e.lastWhipSwing = Whip.swingId
+                        e.hp = e.hp - Whip.DAMAGE * Stats.damageMult
+                        if e.hp <= 0 then
+                            killEnemy(e)
+                        end
+                        break
+                    end
+                end
+            end
             -- proyectiles vs enemigo: un proyectil hace dano y desaparece al primer golpe
             if e.active then
                 local projectiles = Projectile.pool.items

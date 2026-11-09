@@ -10,6 +10,7 @@ Whip = {
     LENGTH = 70,          -- alcance maximo en pixeles (la mejora "Alcance" lo aumenta)
     SWEEP_DEGREES = 40,   -- cuanto baja la punta durante el golpe (de arriba hacia abajo)
     BEND = 6,             -- cuanto se curva el cuerpo del latigo hacia arriba, en pixeles
+    DAMAGE = 2,           -- vida que le quita a un enemigo por golpe (la espada quita 1)
     HIT_RADIUS = 6,       -- radio de cada circulo de dano
     HIT_SPACING = 10,     -- distancia entre un circulo de dano y el siguiente
     DRAW_SEGMENTS = 6,    -- en cuantos tramos se dibuja la curva del latigo

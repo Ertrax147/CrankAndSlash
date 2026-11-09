@@ -7,7 +7,7 @@ Enemy = {
 }
 
 local function newEnemyObject()
-    return { active = false, x = 0, y = 0, hp = 0, maxHp = 1, hitTimer = 0, animTimer = 0, def = EnemyTypes.LIST[1] }
+    return { active = false, x = 0, y = 0, hp = 0, maxHp = 1, hitTimer = 0, lastWhipSwing = 0, animTimer = 0, def = EnemyTypes.LIST[1] }
 end
 
 -- Los dos cuadros de animacion de cada tipo, cargados una sola vez: frames[tipo][1] y frames[tipo][2]
@@ -69,6 +69,7 @@ local function spawnOfType(def)
     e.hp = def.HP * Difficulty.hpMult() -- mas vida en las rondas altas
     e.maxHp = e.hp -- para dibujar la barra de vida del jefe
     e.hitTimer = 0
+    e.lastWhipSwing = 0 -- ningun golpe de latigo lo ha tocado todavia
     e.animTimer = math.random() * def.ANIM_TIME * 2 -- empieza en un punto al azar, asi no aletean todos igual
 end
 
