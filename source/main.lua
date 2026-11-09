@@ -23,6 +23,7 @@ import "entities/projectile"
 import "systems/ranged"
 import "systems/whip"
 import "systems/lightning"
+import "systems/effects"
 import "systems/combat"
 import "systems/spawner"
 import "ui/hud"
@@ -52,6 +53,7 @@ local function resetGame()
     Ranged.reset()
     Whip.reset()
     Lightning.reset()
+    Effects.reset()
     Notices.reset()
     Spawner.reset()
     LevelMenu.reset() -- despues de Xp.reset: toma el nivel inicial
@@ -97,6 +99,7 @@ function playdate.update()
         Projectile.update(dt)
         Combat.update()
         Gems.update()
+        Effects.update(dt)
 
         LevelMenu.detectLevelUp()
         if Player.hp <= 0 then gameOver = true end
@@ -112,6 +115,7 @@ function playdate.update()
     Weapon.draw()
     Whip.draw()
     Projectile.draw()
+    Effects.draw()
     Player.draw()
     Lightning.draw()
     if Config.DEBUG_HITBOXES then DebugDraw.hitboxes() end

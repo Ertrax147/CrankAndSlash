@@ -7,7 +7,7 @@ Enemy = {
 }
 
 local function newEnemyObject()
-    return { active = false, x = 0, y = 0, hp = 0, maxHp = 1, hitTimer = 0, lastWhipSwing = 0, animTimer = 0, def = EnemyTypes.LIST[1] }
+    return { active = false, x = 0, y = 0, hp = 0, maxHp = 1, prevHp = 0, flash = 0, hitTimer = 0, lastWhipSwing = 0, animTimer = 0, def = EnemyTypes.LIST[1] }
 end
 
 -- Los dos cuadros de animacion de cada tipo, cargados una sola vez: frames[tipo][1] y frames[tipo][2]
@@ -70,6 +70,8 @@ local function spawnOfType(def)
     e.maxHp = e.hp -- para dibujar la barra de vida del jefe
     e.hitTimer = 0
     e.lastWhipSwing = 0 -- ningun golpe de latigo lo ha tocado todavia
+    e.prevHp = e.hp
+    e.flash = 0
     e.animTimer = math.random() * def.ANIM_TIME * 2 -- empieza en un punto al azar, asi no aletean todos igual
 end
 
@@ -151,6 +153,10 @@ function Enemy.update(dt)
                 e.y = e.y + dirY * e.def.SPEED * dt
             end
             if e.hitTimer > 0 then e.hitTimer = e.hitTimer - dt end
+            -- si perdio vida desde el cuadro anterior, destella un momento (efecto opcional, ver Effects)
+            if e.hp < e.prevHp then e.flash = Effects.HIT_FLASH_TIME end
+            e.prevHp = e.hp
+            if e.flash > 0 then e.flash = e.flash - dt end
             e.animTimer = e.animTimer + dt
         end
     end
@@ -165,7 +171,10 @@ local function drawEnemy(e)
     local frameNumber = math.floor(e.animTimer / e.def.ANIM_TIME) % 2 + 1
     local image = frames[e.def][frameNumber]
     local w, h = image:getSize()
+    local flashing = Effects.enabled and e.flash > 0
+    if flashing then gfx.setImageDrawMode(gfx.kDrawModeFillBlack) end -- silueta negra mientras destella
     image:draw(screenX - w / 2, screenY - h / 2)
+    if flashing then gfx.setImageDrawMode(gfx.kDrawModeCopy) end
     if e.def.BOSS then
         -- barra de vida del jefe, encima de su dibujo: se vacia a medida que le pegas
         local barW, barH = 40, 5

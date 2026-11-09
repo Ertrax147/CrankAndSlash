@@ -108,6 +108,11 @@ rows[11] = {
     options = { { text = "Arco", value = "ARC" }, { text = "Linea", value = "LINE" } },
     apply = function(style) Whip.drawStyle = style end,
 }
+rows[12] = {
+    label = "Efectos golpe", index = 1,
+    options = { { text = "No", value = false }, { text = "Si", value = true } },
+    apply = function(enabled) Effects.startEnabled = enabled end,
+}
 local cursor = 1 -- fila seleccionada
 local scroll = 0 -- cuantas filas de arriba estan escondidas (la lista se desplaza si hay mas de VISIBLE_ROWS)
 

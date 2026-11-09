@@ -28,7 +28,7 @@ function Image:getSize() return 16, 16 end
 function Image:scaledImage() return self end
 
 local gfx = {
-    kColorBlack = 0, kColorWhite = 1, kImageUnflipped = 0, kImageFlippedX = 1,
+    kColorBlack = 0, kColorWhite = 1, kImageUnflipped = 0, kImageFlippedX = 1, kDrawModeCopy = 0, kDrawModeFillBlack = 1, setImageDrawMode = noop,
     setColor = noop, fillRect = noop, drawRect = noop, drawText = noop, drawLine = noop,
     fillCircleAtPoint = noop, setLineWidth = noop, drawCircleAtPoint = noop, fillPolygon = noop, clear = noop,
     getTextSize = function(text) return #text * 7, 18 end,
@@ -118,6 +118,7 @@ def run(seed, debug_hitboxes):
             floors = ("GRASS", "CLEAN", "DOTS", "DIRT", "STONE", "SAND")
             lua.execute(f'Map.setFloor("{floors[(frame // 500 + seed) % len(floors)]}")')  # el suelo cambia
             lua.execute(f'Whip.drawStyle = "{("ARC", "LINE")[(frame // 500 + seed) % 2]}"')  # dibujo del latigo
+            lua.execute(f"Effects.enabled = {'true' if (frame // 500 + seed) % 2 == 0 else 'false'}")  # efectos de golpe
             aim = ("NEAREST", "ALTERNATE", "FACING")[(frame // 500 + seed) % 3]
             lua.execute(f'Whip.aimMode = "{aim}"')  # el latigo cambia de modo de punteria
             modes = ("BODY", "ANTENNA", "BOTH", "NONE")
