@@ -16,6 +16,15 @@ local function killEnemy(e)
     Enemy.pool:release(e)
 end
 
+-- Quita vida a un enemigo desde fuera del combate normal (la usa el arma "Rayo", que golpea al
+-- instante, sin zona de dano). Si se queda sin vida, muere y suelta sus gemas como siempre.
+function Combat.hurtEnemy(e, amount)
+    e.hp = e.hp - amount
+    if e.hp <= 0 then
+        killEnemy(e)
+    end
+end
+
 function Combat.update()
     local items = Enemy.pool.items
     for i = 1, #items do

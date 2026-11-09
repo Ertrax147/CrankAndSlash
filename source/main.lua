@@ -22,6 +22,7 @@ import "entities/gems"
 import "entities/projectile"
 import "systems/ranged"
 import "systems/whip"
+import "systems/lightning"
 import "systems/combat"
 import "systems/spawner"
 import "ui/hud"
@@ -50,6 +51,7 @@ local function resetGame()
     Projectile.reset()
     Ranged.reset()
     Whip.reset()
+    Lightning.reset()
     Notices.reset()
     Spawner.reset()
     LevelMenu.reset() -- despues de Xp.reset: toma el nivel inicial
@@ -88,6 +90,7 @@ function playdate.update()
         Weapon.update(dt)
         Ranged.update(dt)
         Whip.update(dt)
+        Lightning.update(dt)
 
         Spawner.update(dt)
         Enemy.update(dt)
@@ -110,6 +113,7 @@ function playdate.update()
     Whip.draw()
     Projectile.draw()
     Player.draw()
+    Lightning.draw()
     if Config.DEBUG_HITBOXES then DebugDraw.hitboxes() end
     Hud.draw()
     Notices.draw()

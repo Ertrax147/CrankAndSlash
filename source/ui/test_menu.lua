@@ -53,14 +53,16 @@ rows[4] = {
 rows[5] = {
     label = "Armas extra", index = 1,
     options = {
-        { text = "Ninguna", value = { pistol = false, whip = false } },
-        { text = "Pistola", value = { pistol = true, whip = false } },
-        { text = "Latigo", value = { pistol = false, whip = true } },
-        { text = "Pistola y latigo", value = { pistol = true, whip = true } },
+        { text = "Ninguna", value = { pistol = false, whip = false, lightning = false } },
+        { text = "Pistola", value = { pistol = true, whip = false, lightning = false } },
+        { text = "Latigo", value = { pistol = false, whip = true, lightning = false } },
+        { text = "Rayo", value = { pistol = false, whip = false, lightning = true } },
+        { text = "Todas", value = { pistol = true, whip = true, lightning = true } },
     },
     apply = function(extras)
         Ranged.startUnlocked = extras.pistol
         Whip.startUnlocked = extras.whip
+        Lightning.startUnlocked = extras.lightning
     end,
 }
 rows[6] = {
