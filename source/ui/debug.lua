@@ -25,6 +25,11 @@ function DebugDraw.hitboxes()
             gfx.drawCircleAtPoint(x, y, hit.r)
         end
     end
+    for k = 1, Whip.hitCount do
+        local hit = Whip.hits[k]
+        local x, y = Camera.toScreen(hit.x, hit.y)
+        gfx.drawCircleAtPoint(x, y, hit.r)
+    end
     local projectiles = Projectile.pool.items
     for i = 1, #projectiles do
         local p = projectiles[i]

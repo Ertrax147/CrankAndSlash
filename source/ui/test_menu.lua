@@ -51,9 +51,17 @@ rows[4] = {
     apply = function(typeName) Weapon.startingType = typeName end,
 }
 rows[5] = {
-    label = "Pistola", index = 1,
-    options = { { text = "No", value = false }, { text = "Si", value = true } },
-    apply = function(unlocked) Ranged.startUnlocked = unlocked end,
+    label = "Armas extra", index = 1,
+    options = {
+        { text = "Ninguna", value = { pistol = false, whip = false } },
+        { text = "Pistola", value = { pistol = true, whip = false } },
+        { text = "Latigo", value = { pistol = false, whip = true } },
+        { text = "Pistola y latigo", value = { pistol = true, whip = true } },
+    },
+    apply = function(extras)
+        Ranged.startUnlocked = extras.pistol
+        Whip.startUnlocked = extras.whip
+    end,
 }
 rows[6] = {
     label = "Rayos", index = 1,
