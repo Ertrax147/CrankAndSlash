@@ -13,6 +13,7 @@ local function killEnemy(e)
             Gems.spawn(e.x + math.random(-24, 24), e.y + math.random(-24, 24))
         end
     end
+    Effects.puff(e.x, e.y)
     Enemy.pool:release(e)
 end
 

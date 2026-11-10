@@ -95,6 +95,24 @@ rows[9] = {
     options = { { text = "Ramas", value = "BRANCHES" }, { text = "Simple", value = "SIMPLE" } },
     apply = function(style) Lightning.style = style end,
 }
+rows[10] = {
+    label = "Suelo", index = 1,
+    options = {
+        { text = "Pasto", value = "GRASS" }, { text = "Liso", value = "CLEAN" }, { text = "Puntos", value = "DOTS" },
+        { text = "Tierra", value = "DIRT" }, { text = "Adoquin", value = "STONE" }, { text = "Arena", value = "SAND" },
+    },
+    apply = function(name) Map.setFloor(name) end,
+}
+rows[11] = {
+    label = "Latigo dibujo", index = 1,
+    options = { { text = "Trenzado", value = "BRAID" }, { text = "Arco", value = "ARC" }, { text = "Linea", value = "LINE" } },
+    apply = function(style) Whip.drawStyle = style end,
+}
+rows[12] = {
+    label = "Efectos golpe", index = 1,
+    options = { { text = "No", value = false }, { text = "Si", value = true } },
+    apply = function(enabled) Effects.startEnabled = enabled end,
+}
 local cursor = 1 -- fila seleccionada
 local scroll = 0 -- cuantas filas de arriba estan escondidas (la lista se desplaza si hay mas de VISIBLE_ROWS)
 

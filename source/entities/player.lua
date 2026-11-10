@@ -101,6 +101,7 @@ function Player.hurt(amount)
     if Player.invuln > 0 then return end
     Player.hp = Player.hp - amount
     Player.invuln = Player.INVULN_TIME
+    Effects.shake()
 end
 
 -- Numero pseudoaleatorio entre 0 y 1 que depende solo de a, b y c (no toca math.random,
