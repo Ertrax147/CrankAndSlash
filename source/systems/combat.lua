@@ -16,6 +16,15 @@ local function killEnemy(e)
     Enemy.pool:release(e)
 end
 
+-- Quita vida a un enemigo desde fuera del combate normal (la usa el arma "Rayo", que golpea al
+-- instante, sin zona de dano). Si se queda sin vida, muere y suelta sus gemas como siempre.
+function Combat.hurtEnemy(e, amount)
+    e.hp = e.hp - amount
+    if e.hp <= 0 then
+        killEnemy(e)
+    end
+end
+
 function Combat.update()
     local items = Enemy.pool.items
     for i = 1, #items do
@@ -43,6 +52,22 @@ function Combat.update()
                         end
                     end
                     if struck then break end -- ya se encontro un golpe este frame, no revisar mas armas
+                end
+            end
+            -- latigo vs enemigo: cada golpe del latigo (Whip.swingId) le pega una sola vez a cada enemigo,
+            -- aunque lo toque varios frames mientras se estira. No usa e.hitTimer, que es de las armas
+            -- que giran, asi el latigo y la espada no se anulan entre si.
+            if e.active and Whip.hitCount > 0 and e.lastWhipSwing ~= Whip.swingId then
+                for k = 1, Whip.hitCount do
+                    local hit = Whip.hits[k]
+                    if Collision.circles(hit.x, hit.y, hit.r, e.x, e.y, e.def.RADIUS) then
+                        e.lastWhipSwing = Whip.swingId
+                        e.hp = e.hp - Whip.DAMAGE * Stats.damageMult
+                        if e.hp <= 0 then
+                            killEnemy(e)
+                        end
+                        break
+                    end
                 end
             end
             -- proyectiles vs enemigo: un proyectil hace dano y desaparece al primer golpe

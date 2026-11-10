@@ -6,7 +6,8 @@ local gfx = playdate.graphics
 
 TestMenu = {}
 
-local ROW_HEIGHT = 24   -- alto de cada fila (con 7 filas, mas alto no cabe en la pantalla de 240)
+local ROW_HEIGHT = 21   -- alto de cada fila
+local VISIBLE_ROWS = 8  -- cuantas filas caben en la pantalla; si hay mas, la lista se desplaza
 local PREVIEW_SCALE = 2 -- el dibujo del personaje se muestra al doble de tamano
 local previews = {}     -- dibujos ampliados del personaje, guardados para no crearlos en cada cuadro
 
@@ -51,9 +52,19 @@ rows[4] = {
     apply = function(typeName) Weapon.startingType = typeName end,
 }
 rows[5] = {
-    label = "Pistola", index = 1,
-    options = { { text = "No", value = false }, { text = "Si", value = true } },
-    apply = function(unlocked) Ranged.startUnlocked = unlocked end,
+    label = "Armas extra", index = 1,
+    options = {
+        { text = "Ninguna", value = { pistol = false, whip = false, lightning = false } },
+        { text = "Pistola", value = { pistol = true, whip = false, lightning = false } },
+        { text = "Latigo", value = { pistol = false, whip = true, lightning = false } },
+        { text = "Rayo", value = { pistol = false, whip = false, lightning = true } },
+        { text = "Todas", value = { pistol = true, whip = true, lightning = true } },
+    },
+    apply = function(extras)
+        Ranged.startUnlocked = extras.pistol
+        Whip.startUnlocked = extras.whip
+        Lightning.startUnlocked = extras.lightning
+    end,
 }
 rows[6] = {
     label = "Rayos", index = 1,
@@ -70,7 +81,22 @@ rows[7] = {
     options = { { text = "Manivela", value = "CRANK" }, { text = "Volante", value = "WHEEL" } },
     apply = function(mechanism) Player.setMechanism(mechanism) end, -- despues del personaje: recarga sus dibujos
 }
+rows[8] = {
+    label = "Latigo", index = 1,
+    options = {
+        { text = "Enemigo cercano", value = "NEAREST" },
+        { text = "Alternar", value = "ALTERNATE" },
+        { text = "Mirada", value = "FACING" },
+    },
+    apply = function(mode) Whip.aimMode = mode end,
+}
+rows[9] = {
+    label = "Rayo", index = 1,
+    options = { { text = "Ramas", value = "BRANCHES" }, { text = "Simple", value = "SIMPLE" } },
+    apply = function(style) Lightning.style = style end,
+}
 local cursor = 1 -- fila seleccionada
+local scroll = 0 -- cuantas filas de arriba estan escondidas (la lista se desplaza si hay mas de VISIBLE_ROWS)
 
 -- Deja elegido el personaje que indica Config.DEBUG_CHARACTER (se llama al abrir el juego)
 function TestMenu.reset()
@@ -85,6 +111,9 @@ function TestMenu.update()
     if playdate.buttonJustPressed(playdate.kButtonDown) then cursor = cursor + 1 end
     if cursor < 1 then cursor = #rows end
     if cursor > #rows then cursor = 1 end
+    -- mantiene la fila elegida dentro de las que se ven
+    if cursor <= scroll then scroll = cursor - 1 end
+    if cursor > scroll + VISIBLE_ROWS then scroll = cursor - VISIBLE_ROWS end
 
     local row = rows[cursor]
     if playdate.buttonJustPressed(playdate.kButtonLeft) then row.index = row.index - 1 end
@@ -120,17 +149,22 @@ function TestMenu.draw()
 
     local title = "MODO PRUEBAS"
     local titleWidth = gfx.getTextSize(title)
-    gfx.drawText(title, (Config.SCREEN_W - titleWidth) / 2, 10)
+    gfx.drawText(title, (Config.SCREEN_W - titleWidth) / 2, 6)
 
-    for i = 1, #rows do
-        local top = 36 + (i - 1) * ROW_HEIGHT
+    for slot = 1, math.min(VISIBLE_ROWS, #rows) do
+        local i = scroll + slot
+        local top = 30 + (slot - 1) * ROW_HEIGHT
         local row = rows[i]
         gfx.drawText(row.label, 24, top)
         gfx.drawText("< " .. row.options[row.index].text .. " >", 130, top)
         if i == cursor then
-            gfx.drawRect(16, top - 3, 262, ROW_HEIGHT) -- marco alrededor de la fila elegida
+            gfx.drawRect(16, top - 2, 262, ROW_HEIGHT) -- marco alrededor de la fila elegida
         end
     end
+
+    -- avisa si hay filas escondidas arriba o abajo
+    if scroll > 0 then gfx.drawText("^", 284, 30) end
+    if scroll + VISIBLE_ROWS < #rows then gfx.drawText("v", 284, 30 + (VISIBLE_ROWS - 1) * ROW_HEIGHT) end
 
     drawPreview()
     gfx.drawText("Arriba/Abajo  Izq/Der  A: empezar", 24, Config.SCREEN_H - 28)

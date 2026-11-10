@@ -190,6 +190,19 @@ local function drawBolts(centerX, centerY, antennaX, antennaY)
     end
 end
 
+-- Posicion de la bola de la antena en coordenadas de mundo (la usan los rayos del arma "Rayo"),
+-- o nil si el personaje no tiene antena. Sigue al dibujo: baja 1 px en el segundo cuadro y se refleja
+-- cuando mira a la izquierda.
+function Player.antennaWorld()
+    local character = Player.character
+    if not character.ANTENNA_X then return nil end
+    local frame = math.floor(Player.walkTime / Player.FRAME_TIME) % 2 + 1
+    local w, h = frames[frame]:getSize()
+    local side = Player.facingLeft and -1 or 1
+    return Player.x + side * (character.ANTENNA_X - w / 2),
+        Player.y + (character.ANTENNA_Y + frame - 1) - h / 2
+end
+
 -- Dibuja al personaje en el centro de la pantalla: rayos, manivela y cuerpo (alterna cuadros al
 -- caminar y se voltea al ir a la izquierda)
 function Player.draw()
@@ -202,9 +215,9 @@ function Player.draw()
     local side = Player.facingLeft and -1 or 1 -- al mirar a la izquierda todo se refleja
     -- el pivote baja 1 px en el segundo cuadro, igual que el cuerpo
     local antennaX, antennaY
-    if Player.character.ANTENNA_X then
-        antennaX = screenX + side * (Player.character.ANTENNA_X - w / 2)
-        antennaY = screenY + (Player.character.ANTENNA_Y + frame - 1) - h / 2
+    local antennaWorldX, antennaWorldY = Player.antennaWorld()
+    if antennaWorldX then
+        antennaX, antennaY = Camera.toScreen(antennaWorldX, antennaWorldY)
     end
     local useWheel = Player.mechanism == "WHEEL" and Player.character.WHEEL_X ~= nil
     local pivotX, pivotY

@@ -112,6 +112,11 @@ def run(seed, debug_hitboxes):
         # cambia de personaje jugable cada tanto, para probar los dibujos y datos de todos
         if frame % 500 == 0:
             lua.execute(f"Player.setCharacter(Characters.LIST[({frame // 500} + {seed}) % #Characters.LIST + 1])")
+            lua.execute(f"Whip.unlocked = {'true' if (frame // 500) % 2 == 0 else 'false'}")  # latigo encendido y apagado
+            lua.execute(f"Lightning.unlocked = {'true' if (frame // 500) % 3 != 1 else 'false'}")  # rayo encendido y apagado
+            lua.execute(f'Lightning.style = "{("BRANCHES", "SIMPLE")[(frame // 500 + seed) % 2]}"')  # estilo del rayo
+            aim = ("NEAREST", "ALTERNATE", "FACING")[(frame // 500 + seed) % 3]
+            lua.execute(f'Whip.aimMode = "{aim}"')  # el latigo cambia de modo de punteria
             modes = ("BODY", "ANTENNA", "BOTH", "NONE")
             lua.execute(f'Player.boltMode = "{modes[(frame // 500 + seed) % 4]}"')
             lua.execute(f'Player.setMechanism("{("CRANK", "WHEEL")[(frame // 500) % 2]}")')
