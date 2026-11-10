@@ -6,6 +6,19 @@ local gfx = playdate.graphics
 
 LevelMenu = {}
 
+local ICON_X = 20           -- donde empieza el icono, desde el borde izquierdo del cuadro
+local ICON_Y = 7            -- cuanto baja el icono desde la parte de arriba de la opcion (centrado en el marco)
+local TEXT_X = 24           -- donde empieza el texto sin icono
+local TEXT_X_WITH_ICON = 56 -- donde empieza el texto cuando hay icono (a su derecha)
+local icons = {}            -- iconos ya cargados, para no cargarlos en cada cuadro
+
+-- Devuelve el dibujo de la mejora (lo carga la primera vez), o nil si no tiene
+local function iconFor(upgrade)
+    if not upgrade.icon then return nil end
+    if icons[upgrade.icon] == nil then icons[upgrade.icon] = gfx.image.new(upgrade.icon) end
+    return icons[upgrade.icon]
+end
+
 local choices = nil   -- las mejoras que se ofrecen ahora (lista de Upgrades), o nil si el menu esta cerrado
 local cursor = 1      -- cual de las opciones esta seleccionada
 local pending = 0     -- niveles subidos que todavia no tienen su menu (si se sube mas de uno de golpe)
@@ -76,8 +89,14 @@ function LevelMenu.draw()
 
     for i = 1, #choices do
         local top = boxY + 36 + (i - 1) * 50
-        gfx.drawText(choices[i].name, boxX + 24, top)
-        gfx.drawText(choices[i].text, boxX + 24, top + 20)
+        local textX = boxX + TEXT_X
+        local icon = iconFor(choices[i])
+        if icon then
+            icon:draw(boxX + ICON_X, top + ICON_Y)
+            textX = boxX + TEXT_X_WITH_ICON
+        end
+        gfx.drawText(choices[i].name, textX, top)
+        gfx.drawText(choices[i].text, textX, top + 20)
         if i == cursor then
             gfx.drawRect(boxX + 10, top - 4, boxW - 20, 46) -- marco alrededor de la opcion elegida
         end
